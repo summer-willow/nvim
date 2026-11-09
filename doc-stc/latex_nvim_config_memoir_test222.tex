@@ -1,0 +1,105 @@
+
+% -- ---------------------------------------------------yy
+%  pdflatex engine + memoir class
+%
+% memoir: 책, 논문, 보고서 등 긴 문서를 정교하게 조판하기 위해 report와 book 클래스를 확장한 다기능 latex 문서 클래스
+%
+% 한글 보고서나 학위 논문을 본격적으로 작성하실 때는 report보다 memoir 클래스를 쓰시는 것이 훨씬 더 좋은 선택
+% memoir 클래스는 기존 report나 book 클래스의 기능을 모두 아우르면서, 책이나 보고서 조판에 필요한 유용한 패키지 기능들을 자체적으로 내장하고 있습니다. 덕분에 디자인 커스터마이징이 훨씬 자유롭고 안정적입니다.
+% 다만, report에서 memoir로 클래스를 바꿀 때 충돌을 막기 위해 템플릿 코드를 살짝 다듬어줄 필요가 있습니다. memoir 클래스 자체에 이미 geometry나 hyperref 패키지의 일부 기능이 들어있거나, 한글 kotex 패키지와 불러오는 순서에 따라 경고가 날 수 있기 때문입니다.
+% -- ---------------------------------------------------yy
+
+% !TEX program = xelatex
+
+\documentclass[12pt, a4paper, oneside]{memoir}
+% oneside: 문서의 단면 인쇄를 기준으로 여백과 헤더를 동일하게 설정하는 옵션
+
+% silence: 특정 경고 메시지가 로그에 출력되지 않도록 차단해주는 패키지
+% 라텍스를 쓰다 보면 기능상 문제가 없는데도 계속 출력되는 경고들이 있습니다. 이를 우아하게 가려주는 silence 패키지를 사용하면 빌드 로그를 깔끔하게 유지할 수 있습니다.
+\usepackage{silence}
+% microtype 패키지에서 나오는 특정 경고 문구를 필터링하여 숨깁니다.
+\WarningFilter{microtype}{Command \title@font is not defined} % 유사 경고 방지
+\WarningFilter{microtype}{Command \pickup@font is not defined}
+
+
+
+% 1. 인코딩 및 폰트 설정 (기억하신 lmodern 반영)
+\usepackage[T1]{fontenc}       % 유럽어 및 확장 라틴 문자 인코딩 지원
+\usepackage{lmodern}          % Latin Modern 폰트 (Roman 계열 에러 방지용)
+\usepackage[utf8]{inputenc}    % UTF-8 입력 인코딩 지정
+
+% 2. 한글 지원 설정 (memoir 환경에서는 kotex을 폰트 뒤에 로드하는 것이 안정적)
+\usepackage[hangul]{kotex}     % 한글 문서 작성 패키지 ('제 1 장' 형태로 자동 변환)
+
+% 3. 수식 및 수학 기호 패키지
+\usepackage{amsmath}           % 다양한 수식 환경 (align 등) 지원
+\usepackage{amssymb}           % 추가적인 수학 기호 및 글꼴 지원
+\usepackage{amsfonts}          % 수학적 집합 기호 등 지원
+\usepackage{bm}                % 수식 내 굵은 글씨(\bm) 지원
+
+% 4. 여백 설정 (memoir 전용 방식 또는 geometry 패키지 사용 가능)
+% memoir 클래스와 충돌 없이 작동하도록 여백을 지정합니다.
+% 여백 관련 경고 방지: memoir는 자체적으로 여백 설정을 관리하는 명령어가 따로 있어서 geometry 패키지와 가끔 사소한 경고를 주고받습니다. 이 템플릿은 패키지 로드 순서를 조정하여 내부 충돌이나 경고가 발생하지 않도록 조치해 두었으니 안심하고 컴파일(pdfLaTeX 추천)하시면 됩니다.
+\usepackage[margin=1in]{geometry} 
+
+% 5. 가독성 향상 패키지 (선택 사항이나 lmodern과 궁합이 아주 좋습니다)
+% microtype: 글자 간격과 돌출을 미세하게 조정하여 가독성을 높이고 양쪽 정렬 시 공백 흉터를 줄여주는 패키지
+% 수식과 영문 텍스트가 메인인 학술 보고서: microtype을 쓰는 것이 레이아웃의 완성도 측면에서 확실히 유리합니다. 단어 간격이 균일해져서 가독성이 높아집니다.
+% 순수 한글 위주의 문서: 안 써도 시각적 차이가 거의 없습니다.
+% 현재 템플릿은 영문 폰트를 Latin Modern Roman으로 지정하고 수식을 많이 사용하는 공학 스타일이기 때문에 microtype을 켜두는 편이 수식과 영문 텍스트 조판 퀄리티를 높이는 데 좋습니다. 경고는 silence 패키지로 막아두었으니 켜놓고 쓰셔도 아무런 불이익이 없습니다!
+%
+% 만약 경고가 발생하면, 
+% Latin Modern(lmodern) 폰트는 그 자체로도 이미 조판 밸런스가 매우 훌륭합니다. 만약 영문 텍스트가 아주 많은 대용량 문서가 아니라면, 굳이 미세 조정을 하지 않아도 눈으로 보기에 큰 차이가 없습니다. 
+% (1) 경고가 계속 신경 쓰이신다면 microtype 패키지를 지우거나 주석 처리하셔도 무방합니다.
+% (2) 또는 silence package를 사용하여 해당 경고를 안보이게 할 수 있다.
+\usepackage{microtype}         % 텍스트의 미세 정렬을 도와 가독성을 높임
+
+% 6. 하이퍼링크 설정 (memoir와 충돌 방지를 위해 하단 배치)
+\usepackage{hyperref}          % 문서 내 하이퍼링크 및 PDF 목차 연동
+
+% 문서 정보 설정
+\title{memoir 기반 (using pdflatex) 수식 및 한글 보고서 템플릿}
+\author{작성자 이름}
+\date{\today}
+
+\begin{document}
+
+% 표지 생성
+\maketitle
+
+% 목차 생성 (memoir는 목차 디자인도 기본적으로 깔끔합니다)
+\tableofcontents
+\newpage
+
+% 제 1 장 시작
+\chapter{서론}
+aaa111111111111
+2222222222222
+3333333333333333
+44444444444444
+\section{연구 배경}
+\texttt{memoir} 클래스를 기반으로 작성된 본문입니다. \texttt{oneside} 옵션을 주었기 때문에 홀수 쪽과 짝수 쪽의 좌우 여백이 치우침 없이 동일하게 \texttt{1in}로 지정됩니다. 
+
+영문은 글꼴 경고 없이 깔끔하게 \textit{Latin Modern Roman}으로 조판되며, 한글과 수식 모두 에러 없이 매끄럽게 출력됩니다.
+
+\section{수식 작성 예시}
+기존에 사용하시던 수식 환경을 그대로 사용하실 수 있습니다.
+
+인라인 수식 예시: $E = mc^2$
+
+블록 수식 예시:
+\begin{equation}
+    f(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{(x-\mu)^2}{2\sigma^2} \right)
+\end{equation}
+
+여러 줄 수식 정렬 (\texttt{align}):
+\begin{align}
+    \nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \\
+    \nabla \times \mathbf{H} &= \mathbf{J} + \frac{\partial \mathbf{D}}{\partial t}
+\end{align}
+
+\chapter{본론}
+\section{시스템 모델}
+\texttt{memoir} 클래스는 장(\texttt{\textbackslash chapter}) 디자인을 바꿀 수 있는 빌트인 스타일 명령어가 많습니다. 나중에 보고서 스타일을 커스터마이징하고 싶을 때 매우 유용합니다.
+
+\end{document}

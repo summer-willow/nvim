@@ -1,0 +1,43 @@
+저 멀리 오른쪽에 있는 괄호 안을 바꾸고 싶다면 망설임 없이 ciin) (Change Inside Inner Next Paren)을 칩니다.
+d2iin) 대신, v2iin)
+
+
+
+dkfjdjd
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+abc
+  bbb
+  ccc
+    ccc
+    dkd
+
+akdkdkd
+  머어아ㅓㄹ
+  ㅏ얼아ㅓㄹ
+  ㅏ어ㅏㅓ더
+    아러아어
+    아러나엉
+      aa
+      bbb
+        dkfd
+        dkfd
+abc	ad
+	나	나		낭
+
+	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|
+abc	akd	kd		ksdj
+abc	ab	ab	ab
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+ab	ab	ab	ab	ab
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+ababababababab
+한	글한	글한	글한	글
+한글한글한글가가
+
+	akd	
+	한	글ㅏㅇ러	아ㅏㄴ엉 		
+
+abc	akd	dkd dkfd	akd	dkfksdkd	skdkd	skdldkk	sldkd
+akdkdkd	akdd
+akdksksl	ksdj
+한	글ㅏ	얼

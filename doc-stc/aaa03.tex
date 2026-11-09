@@ -1,0 +1,21 @@
+% !TEX program = xelatex
+% ↑ 문서 맨 첫 줄에 이 주석을 적어두면, VimTeX(latexmk)이 알아서 xelatex로 컴파일합니다.
+% cf) % !TEX program = xelatex
+% cf) % !TEX program = pdflatex ==> default
+
+\documentclass{article}
+\usepackage{kotex} % xelatex 환경에서는 알아서 시스템 폰트를 잡도록 스마트하게 작동합니다.
+
+% 만약 명조 대신 고딕을 기본으로 쓰고 싶다면 아래처럼 지정도 가능합니다.
+\setmainhangulfont{Malgun Gothic} 
+
+\begin{document}
+안녕하세요! Neovim과 xelatex 환경에서 한글을 자유롭게 작성해 보세요.
+AAAa
+BBBB
+CCC
+DDD
+EEE
+FFF
+333333333333333333
+\end{document}

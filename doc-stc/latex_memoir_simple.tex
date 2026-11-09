@@ -1,0 +1,101 @@
+
+% 수식 필수 패키지(amsmath, amssymb)와 한글 패키지(kotex)만 사용하여, pdflatex로 가장 안정적으로 컴파일되는 기본 memoir 템플릿.
+% 수식 번호를 붙이고 이를 본문에서 참조(\label과 \ref)하는 핵심 기능만 포함되어 있음.
+
+% :!pdflatex %
+
+
+\documentclass[12pt,a4paper,oneside]{memoir}
+
+% --- [최소한의 필수 패키지] ---
+\usepackage{kotex}          % 한글 출력을 위한 필수 패키지
+\usepackage{amsmath}        % 정렬된 수식(align), 분기(cases) 등 고급 수식용 필수 패키지
+\usepackage{amssymb}        % 다양한 수학적 기호 (\mathbb, \partial 등)
+
+% --- [memoir 기본 레이아웃 설정] ---
+% 기본 여백을 상하좌우 3cm로 깔끔하게 조절합니다.
+\setlrmarginsandblock{3cm}{3cm}{*} % 좌우 여백
+\setulmarginsandblock{3cm}{3cm}{*} % 上하 여백
+\checkandfixthelayout
+
+% 장(Chapter) 스타일을 너무 거대하지 않게, 일반 섹션 스타일처럼 단정하게 바꿉니다.
+\chapterstyle{section}
+
+% --- [문서 정보 설정] ---
+\title{\texttt{memoir} 클래스 수식 및 참조 기본 템플릿}
+\author{신태철}
+\date{\today}
+
+\begin{document}
+
+% 제목 출력
+\maketitle
+
+% 목차 출력 (컴파일을 2번 연속 해야 번호가 올바르게 갱신됩니다)
+\tableofcontents
+\newpage
+
+\chapter{해석학 및 신호 처리 기초 수式}
+aaaaaaaaaaaaaaaa
+\section{수식 정렬과 번호 부여}
+LaTeX에서 가장 기본적이면서도 중요한 수식 환경은 \texttt{align}입니다. 등호(\texttt{=}) 앞에 \texttt{\&} 기호를 붙여 위치를 맞출 수 있으며, 각 줄마다 자동으로 수식 번호가 부여됩니다.
+
+푸리에 변환(Fourier Transform)의 기본 정의와 선형성 성질은 다음과 같이 나타낼 수 있습니다.
+\begin{align}
+    X(f) &= \int_{-\infty}^{\infty} x(t) e^{-j 2\pi f t} dt \label{eq:fourier} \\
+    \mathcal{F}\{\alpha x(t) + \beta y(t)\} &= \alpha X(f) + \beta Y(f) \label{eq:linearity}
+\end{align}
+
+본문에서 특정 수식을 언급하고 싶을 때는 \texttt{\textbackslash ref\{\}}를 사용합니다. 예를 들어, 식 \ref{eq:fourier}는 연속 시간 신호의 주파수 영역 해석을 위한 기본 정의식이며, 식 \ref{eq:linearity}는 그에 따른 선형성 성질을 나타냅니다. 이렇게 적어두면 나중에 수식이 추가되어 번호가 밀리더라도 LaTeX가 알아서 번호를 찾아줍니다.
+
+
+\section{번호를 생략하는 수식과 상자 구조}
+만약 본문 중간에 강조하고 싶지만 굳이 수식 번호를 붙여 참조할 필요가 없는 경우에는 \texttt{equation*} 환경이나 \texttt{\textbackslash[ ... \textbackslash]}를 사용합니다.
+
+오일러 공식(Euler's formula)은 다음과 같습니다.
+\[
+    e^{j\theta} = \cos\theta + j\sin\theta
+\]
+
+조건에 따라 값이 나뉘는 함수를 표현할 때는 \texttt{cases} 환경을 사용합니다. 이 역시 하나의 완성된 수식이므로 식 \ref{eq:step_func}과 같이 끝에 라벨을 붙여 참조할 수 있습니다.
+\begin{equation}
+    u(t) = \begin{cases}
+        1 & \text{if } t \ge 0 \\
+        0 & \text{if } t < 0
+    \end{cases} \label{eq:step_func}
+\end{equation}
+
+식 \ref{eq:step_func}은 신호 처리와 제어 공학에서 가장 기본적으로 사용되는 단위 계단 함수(Unit Step Function)의 정의입니다.
+
+
+\chapter{고급 수식 및 대형 연산자}
+
+\section{행렬과 벡터 표현}
+다차원 데이터를 다룰 때 필수적인 행렬은 \texttt{bmatrix} 환경을 사용해 각 괄호\texttt{[]} 형태로 표현합니다.
+\begin{equation}
+    \begin{bmatrix}
+        y_1 \\
+        y_2
+    \end{bmatrix} = 
+    \begin{bmatrix}
+        a & b \\
+        c & d
+    \end{bmatrix}
+    \begin{bmatrix}
+        x_1 \\
+        x_2
+    \end{bmatrix} + 
+    \begin{bmatrix}
+        n_1 \\
+        n_2
+    \end{bmatrix} \label{eq:matrix_system}
+\end{equation}
+식 \ref{eq:matrix_system}과 같은 선형 연립방정식 체계는 디지털 통신 채널 모델링의 가장 기초가 되는 형태입니다.
+
+\section{다중 적분과 극한 수식}
+미적분학에서 자주 등장하는 대형 연산자(인테그랄, 시그마 등)와 아래위 첨자 배치 예시입니다.
+\begin{equation}
+    \lim_{n \to \infty} \sum_{k=1}^{n} \frac{1}{n} f\left(\frac{k}{n}\right) = \int_{0}^{1} f(x) dx
+\end{equation}
+
+\end{document}

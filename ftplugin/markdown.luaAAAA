@@ -1,0 +1,53 @@
+--
+-- ~/.config/nvim/ftplugin/markdown.lua
+--
+-- obsidian.nvim 등 타 플러그인이 탭 너비를 강제(2칸)하는 것을 방지하기 위해 
+-- 안전하게 다음 스케줄러에서 실행되도록 감쌉니다.
+vim.schedule(function()
+  -- 1. 들여쓰기 기본 설정 (마크다운 스펙은 4칸 단위가 가장 안정적입니다)
+  vim.opt_local.tabstop = 4         -- 탭(\t) 문자가 차지하는 너비 
+  vim.opt_local.shiftwidth = 4      -- 자동 들여쓰기 및 대화형 들여쓰기(>>, <<) 너비 
+  vim.opt_local.softtabstop = 4     -- 탭 키를 눌렀을 때 입력되는 공백 수 
+  vim.opt_local.expandtab = true    -- 탭을 공백(Space)으로 변환
+end)
+
+-- 2. 자동 줄바꿈 및 서식 
+vim.opt_local.wrap = true             -- 화면 끝에서 소프트 줄바꿈 (문서 작성 필수) 
+vim.opt_local.linebreak = true        -- 단어 중간이 잘리지 않고 공백 단위로 줄바꿈 
+vim.opt_local.breakindent = true      -- 줄바꿈된 뒷줄도 앞줄의 들여쓰기 위치를 유지 (들여쓰기 유지)
+-- {{{
+-- breakindent = true를 켜두면 화면상 줄바꿈된 텍스트도 원래 시작했던 들여쓰기 깊이(인용구 내부나 리스트 내부 위치)에 맞춰서 시각적으로 들여쓰기를 해줍니다.  
+-- breakindent가 없으면 줄바꿈된 글들이 화면 맨 왼쪽(공백 0인 곳)으로 붙어버려 가독성이 심하게 깨집니다.  
+--}}}
+--
+-- vim.opt_local.spell = true      -- 영어 맞춤법 검사 활성화 (필요 시)
+
+
+-- 3. formatoptions 제어 (리스트, 인용구 자동화의 핵심)
+-- 💡 리스트 작성 중 엔터 시 자동 기호 삽입 및 들여쓰기
+vim.opt_local.formatoptions = "jcroqlnt"
+-- t : 텍스트 너비에 맞춰 자동 줄바꿈
+-- r (Enter 이후): 삽입 모드(Insert mode)에서 글을 쓰다가 <Enter>를 누르면, 윗줄에 있던 리스트 마커(-, *, 1.)나 인용구 기호(>)를 다음 줄에 자동으로 삽입해 줍니다.
+-- o (o나 O 이후): 일반 모드(Normal mode)에서 o나 O를 눌러 새 줄을 열 때도 자동으로 리스트 마커를 붙여줍니다.
+-- n (번호 리스트 인식): 숫자로 된 리스트(예: 1. , 2.  등)를 입력할 때, 들여쓰기 정렬 기준을 숫자가 아닌 텍스트가 시작되는 위치로 맞춰줍니다.
+-- cf)
+-- vim.opt_local.formatoptions:append("n") -- 리스트 들여쓰기 자동 인식
+-- vim.opt_local.formatoptions:append("t") -- 텍스트 너비에 맞춰 자동 줄바꿈
+-- vim.opt_local.formatoptions:remove 'n' -- 리스트 자동 인식 강제를 해제하여 중간 탭 먹통 방지
+-- vim.opt_local.formatoptions:remove 't' -- (선택) 타이핑 중 강제 줄바꿈이 싫다면 함께 제거 추천
+
+-- 4. 리스트 기호 및 인용구 정밀 인식을 위한 정규식 패턴 (Vim 내장 기능)
+-- 엔터나 gq를 누를 때 마크다운의 리스트와 blockquote를 정확히 인식하게 만듭니다.
+vim.opt_local.comments = "b:*,b:-,b:+,b:1.,n:>"
+-- vim.opt_local.comments: 이 설정이 바로 Vim에게 무엇이 리스트 마커이고 무엇이 인용구 기호인지 알려주는 지도 역할을 합니다. 
+-- n:>는 > 기호 뒤에 글이 이어지는 인용구(blockquote) 레벨을 뜻하므로, 윗줄이 > 상태라면 다음 줄 엔터를 쳤을 때 자동으로 >를 붙이고 들여쓰기 정렬을 유지해 줍니다.
+
+
+-- Conceal 설정 (Markdown 기호를 숨겨서 깔끔하게 보기)
+-- obsidian.nvim이나 다른 플러그인과 함께 쓸 때 유용합니다.
+vim.opt_local.conceallevel = 2
+
+
+
+
+-- vim: set foldmethod=marker foldmarker={{{,}}}:

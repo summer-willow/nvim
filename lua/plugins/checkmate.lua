@@ -1,0 +1,437 @@
+-- A Markdown-based todo/task plugin for Neovim.
+return {
+  'bngarren/checkmate.nvim',
+  ft = 'markdown', -- Lazy loads for Markdown files matching patterns in 'files'
+  opts = {
+    -- -----------------------------------------
+    -- conditon to activate
+    -- {{{
+    -- conditon to activate
+    --
+    -- 다음에 해당하는 파일을 불러올 때만이 todo 파일임을 갖지하고
+    -- 이 플러그인이 activate 된다
+    -- files = { "*.md" }, -- any .md file (instead of defaults)
+    -- }}}
+    files = {
+      -- '*.md', -- Any markdown file (basename matching)
+      -- "**/todo.md",        -- 'todo.md' anywhere in directory tree
+      -- "project/todo.md",   -- Any path ending with 'project/todo.md'
+      -- "/absolute/path.md", -- Exact absolute path match
+      --
+      -- 'todo-stc.md', -- 파일 이름이 정확히 일치할 때
+      -- '**/todo-stc.md', -- 어느 폴더에 있든 todo-stc.md일 때
+      'C:/stc/todo-stc.md', -- 절대 경로로 지정할 때 (윈도우 경로)
+      -- 'C:/stc_obsidian/stc/00_todo.md', -- 절대 경로로 지정할 때 (윈도우 경로)
+    },
+
+    -- ------------------------------------------
+    -- keymap
+    -- {{{
+    --
+    -- Keymaps should be defined as a dict-like table or a sequence of {rhs, desc?, modes?}.
+    --   (뒤에 ?가 붙은 건 생략 가능하다는 뜻)
+    --
+    -- -- --------
+    -- * syntax
+    -- keys = {
+    --   ["<leader>Ta"] = {
+    --       rhs = "<cmd>Checkmate archive<CR>",
+    --       desc = "Archive todos",
+    --       modes = { "n" },
+    --   },
+    -- },
+    -- or
+    -- keys = {
+    --   ["<leader>Ta"] = {"<cmd>Checkmate archive<CR>", "Archive todos", {"n"} },
+    -- },
+    -- -- --------
+    --
+    -- -- Default keymappings
+    -- keys = {
+    --   ["<leader>Tt"] = {
+    --     rhs = "<cmd>Checkmate toggle<CR>",
+    --     desc = "Toggle todo item",
+    --     modes = { "n", "v" },
+    --   },
+    --   ["<leader>Tc"] = {
+    --     rhs = "<cmd>Checkmate check<CR>",
+    --     desc = "Set todo item as checked (done)",
+    --     modes = { "n", "v" },
+    --   },
+    --   ["<leader>Tu"] = {
+    --     rhs = "<cmd>Checkmate uncheck<CR>",
+    --     desc = "Set todo item as unchecked (not done)",
+    --     modes = { "n", "v" },
+    --   },
+    --   ["<leader>T="] = {
+    --     rhs = "<cmd>Checkmate cycle_next<CR>",
+    --     desc = "Cycle todo item(s) to the next state",
+    --     modes = { "n", "v" },
+    --   },
+    --   ["<leader>T-"] = {
+    --     rhs = "<cmd>Checkmate cycle_previous<CR>",
+    --     desc = "Cycle todo item(s) to the previous state",
+    --     modes = { "n", "v" },
+    --   },
+    --   ["<leader>Tn"] = {
+    --     rhs = "<cmd>Checkmate create<CR>",
+    --     desc = "Create todo item",
+    --     modes = { "n", "v" },
+    --   },
+    --   ["<leader>Tr"] = {
+    --     rhs = "<cmd>Checkmate remove<CR>",
+    --     desc = "Remove todo marker (convert to text)",
+    --     modes = { "n", "v" },
+    --   },
+    --   ["<leader>TR"] = {
+    --     rhs = "<cmd>Checkmate remove_all_metadata<CR>",
+    --     desc = "Remove all metadata from a todo item",
+    --     modes = { "n", "v" },
+    --   },
+    --   ["<leader>Ta"] = {
+    --     rhs = "<cmd>Checkmate archive<CR>",
+    --     desc = "Archive checked/completed todo items (move to bottom section)",
+    --     modes = { "n" },
+    --   },
+    --   ["<leader>TF"] = {
+    --     rhs = "<cmd>Checkmate select_todo<CR>",
+    --     desc = "Open a picker to select a todo from the current buffer",
+    --     modes = { "n" },
+    --   },
+    --   ["<leader>Tv"] = {
+    --     rhs = "<cmd>Checkmate metadata select_value<CR>",
+    --     desc = "Update the value of a metadata tag under the cursor",
+    --     modes = { "n" },
+    --   },
+    --   ["<leader>T]"] = {
+    --     rhs = "<cmd>Checkmate metadata jump_next<CR>",
+    --     desc = "Move cursor to next metadata tag",
+    --     modes = { "n" },
+    --   },
+    --   ["<leader>T["] = {
+    --     rhs = "<cmd>Checkmate metadata jump_previous<CR>",
+    --     desc = "Move cursor to previous metadata tag",
+    --     modes = { "n" },
+    --   },
+    -- },
+    -- }}}
+
+    -- ------------------------------------------
+    -- style: 색 설정 (highlighting 설정)
+    -- style = {
+    --   -- Example: Change the checked marker to a bold green
+    --   -- CheckmateCheckedMarker = { fg = "#7bff4f", bold = true}
+    -- },
+
+    -- {{{ Highlight groups
+
+    -- CheckmateListMarkerUnordered	
+    --     Unordered list markers, e.g. -,*, and +. (Only those associated with a todo)
+    -- CheckmateListMarkerOrdered	
+    --     Ordered list markers, e.g. 1., 2). (Only those associated with a todo)
+    -- CheckmateUncheckedMarker	
+    --     Unchecked todo marker, e.g. □. See todo_states marker option
+    -- CheckmateUncheckedMainContent	
+    --    The main content of an unchecked todo (typically the first paragraph)
+    -- CheckmateUncheckedAdditionalContent	
+    --     Additional content for an unchecked todo (subsequent paragraphs, list items, etc.)
+    -- CheckmateCheckedMarker	
+    --     Checked todo marker, e.g. ✔. See todo_states marker option
+    -- CheckmateCheckedMainContent	
+    --     The main content of a checked todo (typically the first paragraph)
+    -- CheckmateCheckedAdditionalContent	
+    --     Additional content for a checked todo (subsequent paragraphs, list items, etc.)
+    -- CheckmateTodoCountIndicator	
+    --     The todo count indicator, e.g. 1/4, shown on the todo line, if enabled. See show_todo_count option
+    -- }}}
+
+    -- {{{ Hex Code
+    --
+    -- #000000 #696969 #696969 #808080 #808080 #A9A9A9 #A9A9A9 #C0C0C0
+    --
+    -- #D3D3D3 #D3D3D3 #DCDCDC #F5F5F5 #FFFFFF #FFFAFA #BC8F8F #F08080
+    --
+    -- #CD5C5C #A52A2A #B22222 #800000 #8B0000 #FF0000 #FFE4E1 #FA8072
+    --
+    -- #FF6347 #E9967A #FF7F50 #FF4500 #FFA07A #A0522D #FFF5EE #D2691E
+    --
+    -- #8B4513 #F4A460 #FFDAB9 #CD853F #FAF0E6 #FFE4C4 #FF8C00 #DEB887
+    --
+    -- #FAEBD7 #D2B48C #FFDEAD #FFEBCD #FFEFD5 #FFE4B5 #FFA500 #F5DEB3
+    -- j
+    -- #FDF5E6 #FFFAF0 #B8860B #DAA520 #FFF8DC #FFD700 #FFFACD #F0E68C
+    --
+    -- #EEE8AA #BDB76B #FFFFF0 #F5F5DC #FFFFE0 #FAFAD2 #808000 #FFFF00
+    --
+    -- #6B8E23 #9ACD32 #556B2F #ADFF2F #7FFF00 #7CFC00 #F0FFF0 #8FBC8F
+    --
+    -- #98FB98 #90EE90 #228B22 #32CD32 #006400 #008000 #00FF00 #2E8B57
+    --
+    -- #3CB371 #00FF7F #F5FFFA #00FA9A #66CDAA #7FFFD4 #40E0D0 #20B2AA
+    --
+    -- #48D1CC #F0FFFF #E0FFFF #AFEEEE #2F4F4F #2F4F4F #008080 #008B8B
+    --
+    -- #00FFFF #00FFFF #00CED1 #5F9EA0 #B0E0E6 #ADD8E6 #00BFFF #87CEEB
+    --
+    -- #87CEFA #4682B4 #F0F8FF #1E90FF #778899 #778899 #708090 #708090
+    --
+    -- #B0C4DE #6495ED #4169E1 #F8F8FF #E6E6FA #191970 #000080 #00008B
+    --
+    -- #0000CD #0000FF #6A5ACD #483D8B #7B68EE #9370DB #663399 #8A2BE2
+    --
+    -- #4B0082 #9932CC #9400D3 #BA55D3 #D8BFD8 #DDA0DD #EE82EE #800080
+    --
+    -- #8B008B #FF00FF #FF00FF #DA70D6 #C71585 #FF1493 #FF69B4 #FFF0F5
+    --
+    -- #DB7093 #DC143C #FFC0CB #FFB6C1
+    -- }}}
+
+    style = {
+      -- ------------
+      -- text 색 지정
+      -- 아직 안 끝난 할 일: 부드러운 파스텔 블루
+      CheckmateUncheckedMainContent = { fg = "#7aa2f7" },
+
+      -- 완료된 항목: 눈이 가장 편한 더스티 그레이
+      CheckmateCheckedMainContent = { fg = "#787c99", italic = true },
+
+      -- ------------
+      -- marker 색 지정
+
+      -- 중요한 마커: 따뜻한 뮤트 골드
+      CheckmateUncheckedMarker = { fg = "#e0af68", bold = true },
+
+      -- 완료 마커: 산뜻한 파스텔 민트
+      CheckmateCheckedMarker = { fg = "#b4f9f8" },
+    }
+    -- style = {
+      -- ------------
+      -- text 색 지정
+    --   -- 1. 아직 안 끝난 할 일의 텍스트를 밝은 하늘색으로!
+    --   CheckmateUncheckedMainContent = { fg = '#00A36C', bold = true }, -- good
+    --   CheckmateUncheckedAdditionalContent	= { fg = '#bb9af7', bold = true },
+    --
+    --   -- 3. 완료된 할 일 [x] 텍스트를 흐린 회색으로!
+    --   CheckmateCheckedMainContent = { fg = '#787c99', italic = true },
+    --   CheckmateCheckedAdditionalContent	= { fg = '#787c99', italic = true },
+    --   --
+      -- ------------
+      -- marker 색 지정
+    --   -- 2. 빈 체크박스 [ ] 를 밝은 노란색으로!
+    --   CheckmateUncheckedMarker = { fg = '#ffff00' },
+    --
+    --   -- 4. 체크된 마커 [x] 를 밝은 초록색으로!
+    --   CheckmateCheckedMarker = { fg = '#FF0000', bold = true },
+    -- },
+    -- style = false,   -- disable highlighting
+    -- style = {},   -- use default highlighting
+  },
+}
+
+-- {{{ cf) Built-in default Setting
+
+-- ---@type checkmate.Config
+-- return {
+--   enabled = true,
+--   notify = true,
+--   -- Default file matching:
+--   --  - Any `todo` or `TODO` file, including with `.md` extension
+--   --  - Any `.todo` extension (can be ".todo" or ".todo.md")
+--   -- To activate Checkmate, the filename must match AND the filetype must be "markdown"
+--   files = {
+--     "todo",
+--     "TODO",
+--     "todo.md",
+--     "TODO.md",
+--     "*.todo",
+--     "*.todo.md",
+--   },
+--   log = {
+--     level = "warn",
+--     use_file = true,
+--   },
+--   -- Default keymappings
+--   keys = {
+--     ["<leader>Tt"] = {
+--       rhs = "<cmd>Checkmate toggle<CR>",
+--       desc = "Toggle todo item",
+--       modes = { "n", "v" },
+--     },
+--     ["<leader>Tc"] = {
+--       rhs = "<cmd>Checkmate check<CR>",
+--       desc = "Set todo item as checked (done)",
+--       modes = { "n", "v" },
+--     },
+--     ["<leader>Tu"] = {
+--       rhs = "<cmd>Checkmate uncheck<CR>",
+--       desc = "Set todo item as unchecked (not done)",
+--       modes = { "n", "v" },
+--     },
+--     ["<leader>T="] = {
+--       rhs = "<cmd>Checkmate cycle_next<CR>",
+--       desc = "Cycle todo item(s) to the next state",
+--       modes = { "n", "v" },
+--     },
+--     ["<leader>T-"] = {
+--       rhs = "<cmd>Checkmate cycle_previous<CR>",
+--       desc = "Cycle todo item(s) to the previous state",
+--       modes = { "n", "v" },
+--     },
+--     ["<leader>Tn"] = {
+--       rhs = "<cmd>Checkmate create<CR>",
+--       desc = "Create todo item",
+--       modes = { "n", "v" },
+--     },
+--     ["<leader>Tr"] = {
+--       rhs = "<cmd>Checkmate remove<CR>",
+--       desc = "Remove todo marker (convert to text)",
+--       modes = { "n", "v" },
+--     },
+--     ["<leader>TR"] = {
+--       rhs = "<cmd>Checkmate remove_all_metadata<CR>",
+--       desc = "Remove all metadata from a todo item",
+--       modes = { "n", "v" },
+--     },
+--     ["<leader>Ta"] = {
+--       rhs = "<cmd>Checkmate archive<CR>",
+--       desc = "Archive checked/completed todo items (move to bottom section)",
+--       modes = { "n" },
+--     },
+--     ["<leader>TF"] = {
+--       rhs = "<cmd>Checkmate select_todo<CR>",
+--       desc = "Open a picker to select a todo from the current buffer",
+--       modes = { "n" },
+--     },
+--     ["<leader>Tv"] = {
+--       rhs = "<cmd>Checkmate metadata select_value<CR>",
+--       desc = "Update the value of a metadata tag under the cursor",
+--       modes = { "n" },
+--     },
+--     ["<leader>T]"] = {
+--       rhs = "<cmd>Checkmate metadata jump_next<CR>",
+--       desc = "Move cursor to next metadata tag",
+--       modes = { "n" },
+--     },
+--     ["<leader>T["] = {
+--       rhs = "<cmd>Checkmate metadata jump_previous<CR>",
+--       desc = "Move cursor to previous metadata tag",
+--       modes = { "n" },
+--     },
+--   },
+--   default_list_marker = "-",
+--   ui = {},
+--   todo_states = {
+--     -- we don't need to set the `markdown` field for `unchecked` and `checked` as these can't be overriden
+--     ---@diagnostic disable-next-line: missing-fields
+--     unchecked = {
+--       marker = "□",
+--       order = 1,
+--     },
+--     ---@diagnostic disable-next-line: missing-fields
+--     checked = {
+--       marker = "✔",
+--       order = 2,
+--     },
+--   },
+--   style = {}, -- override defaults
+--   enter_insert_after_new = true, -- Should enter INSERT mode after `:Checkmate create` (new todo)
+--   list_continuation = {
+--     enabled = true,
+--     split_line = true,
+--     keys = {
+--       ["<CR>"] = function()
+--         require("checkmate").create({
+--           position = "below",
+--           indent = false,
+--         })
+--       end,
+--       ["<S-CR>"] = function()
+--         require("checkmate").create({
+--           position = "below",
+--           indent = true,
+--         })
+--       end,
+--     },
+--   },
+--   smart_toggle = {
+--     enabled = true,
+--     include_cycle = false,
+--     check_down = "direct_children",
+--     uncheck_down = "none",
+--     check_up = "direct_children",
+--     uncheck_up = "direct_children",
+--   },
+--   show_todo_count = true,
+--   todo_count_position = "eol",
+--   todo_count_recursive = true,
+--   use_metadata_keymaps = true,
+--   metadata = {
+--     -- Example: A @priority tag that has dynamic color based on the priority value
+--     priority = {
+--       style = function(context)
+--         local value = context.value:lower()
+--         if value == "high" then
+--           return { fg = "#ff5555", bold = true }
+--         elseif value == "medium" then
+--           return { fg = "#ffb86c" }
+--         elseif value == "low" then
+--           return { fg = "#8be9fd" }
+--         else -- fallback
+--           return { fg = "#8be9fd" }
+--         end
+--       end,
+--       get_value = function()
+--         return "medium" -- Default priority
+--       end,
+--       choices = function()
+--         return { "low", "medium", "high" }
+--       end,
+--       key = "<leader>Tp",
+--       sort_order = 10,
+--       jump_to_on_insert = "value",
+--       select_on_insert = true,
+--     },
+--     -- Example: A @started tag that uses a default date/time string when added
+--     started = {
+--       aliases = { "init" },
+--       style = { fg = "#9fd6d5" },
+--       get_value = function()
+--         return tostring(os.date("%m/%d/%y %H:%M"))
+--       end,
+--       key = "<leader>Ts",
+--       sort_order = 20,
+--     },
+--     -- Example: A @done tag that also sets the todo item state when it is added and removed
+--     done = {
+--       aliases = { "completed", "finished" },
+--       style = { fg = "#96de7a" },
+--       get_value = function()
+--         return tostring(os.date("%m/%d/%y %H:%M"))
+--       end,
+--       key = "<leader>Td",
+--       on_add = function(todo)
+--         require("checkmate").set_todo_state(todo, "checked")
+--       end,
+--       on_remove = function(todo)
+--         require("checkmate").set_todo_state(todo, "unchecked")
+--       end,
+--       sort_order = 30,
+--     },
+--   },
+--   archive = {
+--     heading = {
+--       title = "Archive",
+--       level = 2, -- e.g. ##
+--     },
+--     parent_spacing = 0, -- no extra lines between archived todos
+--     newest_first = true,
+--   },
+--   linter = {
+--     enabled = true,
+--   },
+-- }
+-- }}}
+
+
+
+-- vim: set foldmethod=marker foldmarker={{{,}}}:

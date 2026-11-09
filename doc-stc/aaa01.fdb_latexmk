@@ -1,0 +1,27 @@
+# Fdb version 4
+["pdflatex"] 1783159291.69985 "aaa01.tex" "aaa01.pdf" "aaa01" 1783159292.36536 2
+  "aaa01.aux" 1783159292 32 3985256e7290058c681f74d7a3565a19 "pdflatex"
+  "aaa01.tex" 1783159287 253 340acc54c3a28e8a095bc535b320845f ""
+  "c:/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1776589673 3524 cb3e574dea2d1052e39280babc910dc8 ""
+  "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1776589294 1328 c834bbb027764024c09d3d2bf908b5f0 ""
+  "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1776589129 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
+  "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb" 1776589129 36281 c355509802a035cadc5f15869451dcee ""
+  "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1776589129 35752 024fb6c41858982481f6968b5fc26508 ""
+  "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb" 1776589129 32716 08e384dc442464e7285e891af9f45947 ""
+  "c:/texlive/2026/texmf-dist/tex/generic/infwarerr/infwarerr.sty" 1776589805 8356 7bbb2c2373aa810be568c29e333da8ed ""
+  "c:/texlive/2026/texmf-dist/tex/latex/base/article.cls" 1776589875 20144 b966087dda3b194755eb460d32e2ef75 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/base/omscmr.fd" 1776589875 2469 c75f72b1dc17277decdd842fa4a321a8 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/base/size10.clo" 1776589875 8448 686612a86f0e04f41ea577f5ec7e83d8 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def" 1776589867 30662 bfd6e864f4ffc5018b0e2b6260c3181c ""
+  "c:/texlive/2026/texmf-dist/tex/luatex/luatexja/luatexja-compat.sty" 1776589969 3553 628e3ea0d09430b19db595c6e4c4ef59 ""
+  "c:/texlive/2026/texmf-dist/tex/luatex/luatexja/luatexja-core.sty" 1776589969 29886 63e89c93faeaadea0d8b3dd231e616da ""
+  "c:/texlive/2026/texmf-dist/tex/luatex/luatexja/luatexja.sty" 1776589969 1902 3d487d128b91b6d0ceac1ad14cb3ad5c ""
+  "c:/texlive/2026/texmf-dist/web2c/texmf.cnf" 1776589102 43630 e9fa012910491fe5ae08a72c3c2997a7 ""
+  "c:/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1776590798 5587484 f8c68a611032439b64384a9c9a056676 ""
+  "c:/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1776590988 3636405 53af64328ec1a8a856a161c7da111ddc ""
+  "c:/texlive/2026/texmf.cnf" 1776590780 713 e69b156964470283e0530f5060668171 ""
+  (generated)
+  "aaa01.aux"
+  "aaa01.log"
+  "aaa01.pdf"
+  (rewritten before read)

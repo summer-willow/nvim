@@ -1,0 +1,106 @@
+-- ~/AppData/Local/nvim/snippets/markdown.lua 
+
+-- {{{
+--[[
+## 💡 LuaSnip 문법 및 동작 원리 상세 설명
+
+### 1. 스니펫 선언 구조 `s({ 설정 }, { 구성요소 })`
+
+* 첫 번째 인자 `{ 설정 }`: 스니펫을 호출할 명령어 키워드를 지정합니다.
+  * `trig`: 필수 항목으로, 에디터에서 입력할 명령어 이름입니다.
+  * `aliases`: JSON에서 `["img-html", "img_html"]`처럼 여러 키워드를 지정했을 때 루아에서는 배열 형태로 별칭을 줍니다.
+  * `desc`: 스니펫의 설명입니다. 자동완성 팝업창 곁에 표시됩니다.
+
+
+* 두 번째 인자 `{ 구성요소 }`: 실제로 화면에 뿌려질 코드의 뼈대입니다. 고정 텍스트(`t`)와 가변 입력창(`i`)이 번갈아가며 배치됩니다.
+
+### 2. 고정 텍스트 노드: `t("문자열")` 또는 `t({ "줄1", "줄2" })`
+
+* 변하지 않고 그대로 출력되는 텍스트를 감쌉니다.
+* 따옴표 주의: HTML 태그 안에 쌍따옴표(`"`)가 들어가므로, 루아에서는 전체 문자열을 홑따옴표(`'...'`)로 감싸주면 따로 이스케이프(`\"`) 처리를 안 해도 되어 코드가 훨씬 깔끔해집니다.
+* 줄바꿈 처리: `t()` 함수 안에서는 `t({ "첫째줄", "둘째줄" })`처럼 중괄호 배열을 넣으면 줄바꿈이 일어납니다. 4번 메모 스니펫의 `t({ "", "" })`는 본문 출력 후 엔터를 두 번 친 것과 같은 효과를 냅니다.
+
+### 3. 가변 입력 및 플레이스홀더 노드: `i(번호, "기본값")`
+
+* 스니펫이 실행되면 커서가 `i(1)` 위치에 먼저 가고, `Tab` 키를 누르면 `i(2)` -> `i(3)` 순서로 점프하며 이동합니다.
+* 최종 커서 위치 `i(0)`: `Tab` 이동이 모두 끝난 후 커서가 최종적으로 멈출 위치를 지정합니다.
+--]]
+-- }}}
+
+-- --------------------------------------------------------------
+-- LuaSnip의 핵심 함수들을 가져옵니다.
+-- s: 스니펫 정의, t: 고정 텍스트, i: 입력창(플레이스홀더)
+
+local ls = require("luasnip")
+local s = ls.snippet          -- 스니펫 본체
+local t = ls.text_node         -- 단순 텍스트
+local i = ls.insert_node       -- 커서가 멈추는 입력 칸 (placeholder)
+local f = ls.function_node     -- 루아 코드로 동적 텍스트 생성
+local fmta = require("luasnip.extras.fmt").fmta -- 서식 지정 헬퍼 (강력 추천)
+-- --------------------------------------------------------------
+
+return {
+  -- 1. HTML Image Tag
+  s(
+    {
+      trig = "img-html", -- 주 트리거 단어
+      -- aliases = { "img_html" }, -- 추가 트리거 단어 (JSON의 배열 prefix 대응)
+      desc = "Insert HTML img tag for markdown preview compatibility, by stc",
+    },
+    {
+      t('<img src="'), i(1, "image-path"), t('" alt="'), i(2, "alt-text"), t('" title="'), i(3, "title"), t('">'), i(0)
+    }
+  ),
+
+  -- 2. HTML Image Tag with full options
+  s(
+    {
+      trig = "img-full",
+      desc = "이미지 태그 with, by stc",
+    },
+    {
+      t('<img src="'), i(1, "image-path"), t('" alt="'), i(2, "alt-text"), t('" title="'), i(3, "title"),
+      t('" width="'), i(4, "20"), t('" height="'), i(5, "20"), t('" />'), i(0)
+    }
+  ),
+
+  -- 3. HTML Heading ID Anchor
+  s(
+    {
+      trig = "hid-Heading-ID",
+      desc = "(markdown-preview용) HTML 헤딩 ID 스니펫, by stc",
+    },
+    {
+      t('<span id="'), i(1, "heading-id"), t('"></span>'), i(0)
+    }
+  ),
+
+  -- 4. Personal Memo Anchor Block
+  s(
+    {
+      trig = "anchor",
+      desc = "💡 개인 메모 가이드 라인 스니펫, by stc",
+    },
+    {
+      t("💡 [@stc-memo]: "), i(1, "memo-here"), t({ "", "" }), i(0) -- t({ "", "" })는 줄바꿈(엔터)을 의미합니다.
+    }
+  ),
+
+-- <span style="display: block; height: 0pt;"></span>
+-- ==> snippet에 등록할 것!!!
+  -- put some vertidal space 
+  s(
+    {
+      trig = "vskip-md",
+      desc = "약간의 vertical space 넣기 (약 기본 줄간격의 0.5 정도), (위, 아래로 빈 줄 필요)",
+    },
+    {
+      t('<span style="display: blank; beight: '), i(1, "0"), t('pt;"></span>'), i(0)
+    }
+  ),
+
+
+}
+
+
+-- vim: set foldmethod=marker foldmarker={{{,}}}:

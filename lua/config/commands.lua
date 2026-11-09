@@ -1,0 +1,255 @@
+
+-- -----------------------------------
+-- -- 순수 Lua API를 활용해 더 "Neovim답게" 구성
+-- -- vim.cmd (Vimscript 방식)
+-- -- vim.api (Lua 방식)
+-- -----------------------------------
+--
+--
+-- -----------------------------------
+-- Creates a global (user-commands) command.(command 만들기)
+-- :h nvim_create_user_command
+-- nvim_create_user_command({name}, {cmd}, {opts})
+
+-- {{{ ex)
+-- ex)
+-- vim.api.nvim_create_user_command('Conf', function()	
+--   local config_path = vim.fn.stdpath('config')
+--   vim.cmd('edit ' .. config_path)
+-- end, { desc = 'Neovim 설정 디렉토리 열기' })
+-- 만약 매번 :Conf라고 치는 것도 귀찮다면,
+-- vim.cmd [[cabbrev oc Conf]] -- :oc 이용
+-- cf) ==> neo-tree.nvim 안에서 neo-tree.nvim이 제공하는 명령으로 keymap 시켰음
+
+-- 설명:
+-- vim.api.nvim_create_user_command: 새로운 명령어 등록 함수
+-- 'name': 터미널(command-line)에서 입력할 명령어 이름 (첫 글자는 반드시 대문자이어야 함)
+-- function() ... end: :Conf를 입력했을 때 실제로 실행돌 동작(함수)
+-- vim.fn.stdpath('config')   -- 경로 자동 찾기
+-- vim.fn: Vimscript 내장 함수(funcion)를 호출한다는 명령어
+-- stdpath('config'): stdpath 함수를 실행해서 'config'(설정 경로) 값을 반완, 즉, Neovim이 현재 참조하고 있는 설정 폴더의 경로를 반환
+-- 만약 nvm으로 실행하면 ~/AppData/Local/nvim-mine 경로를 반환
+-- cf) :echo stdpath('config')
+-- vim.cmd('edit ' .. vim.fn.stdpath('config'))
+-- .. : Lua에서 두 문장(string)을 하나로 합치는 기호
+-- 결과적으로, vim.cmd('edit ~/AppData/Local/nvim-mine')
+-- edit: 파일이나 폴더를 여는 명형어, 폴더 경로를 edit로 열면, Neovim에 설치된 ( 또는 내장된 Netrw(:Ex)) 파일 탐색기에 해당 폴더를 보여주게 됨.
+-- cf) 플러그인과의 시너지: 만약 Telescope이나 Neo-tree/nvim-tree 같은 플러그인을 쓰고 있다면, :Conf를 입력하자마자 해당 폴더의 파일 목록이 열림
+-- }}}
+
+-- -----------------------------------
+-- -----------------------------------
+-- -----------------------------------
+-- -----------------------------------
+-- -----------------------------------
+-- -----------------------------------
+
+
+
+
+
+
+
+
+
+
+-- {{{ 3. 고수들의 "팁": 더 효율적인 방법
+-- 3. 고수들의 "팁": 더 효율적인 방법
+-- 실제로 고수들은 단순히 파일을 여는 것을 넘어, 다음과 같은 플러그인을 활용해 이 기능을 대체하거나 보완합니다.
+--
+-- Telescope 활용 (가장 추천): 파일 경로를 직접 입력하는 대신, Telescope를 이용해 설정 파일 목록을 바로 띄웁니다.
+--
+-- ```Lua
+-- -- 단축키 하나로 설정 파일들 사이를 탐색
+-- vim.keymap.set('n', '<leader>fv', function()
+--   require('telescope.builtin').find_files({
+--     cwd = vim.fn.stdpath('config')
+--   })
+-- end, { desc = '설정 파일 찾기' })
+-- ```
+--
+-- 향후 발전: 파일 하나하나를 여는 약축어(vi, cf)보다는, Telescope를 이용해 설정 폴더 내의 모든 파일을 검색하며 이동하는 방식이 모듈화된 환경에서는 훨씬 강력합니다.
+-- }}}
+
+
+
+
+
+
+
+
+
+-- {{{ 고수들의 Telescope 활용 : 'config' (설정파일) 열기
+-- 
+-- Question :
+--
+-- 그럼 , 파일 하나하나를 여는 약축어의 사용보다는, telescope를 이용해 설정 폴더 내의 모든 파일을 검색하여 이동하는 방법을 고려할 때, 어떻게 하는 거야? 위의 telescope 활용 코드는 cmd-vim.fn.stdpath('config') 만을 실행하는 keymapping 이잖아?.... 다른 사람들/고수들은 Telescope를 어떻게 이용해서, 필요한 파일을 열지? 나의 설정은 아예 생각하지 말고.... 그들의 방법을 알려줘.
+--
+-- Answer :
+--
+-- 모듈화가 진행될수록 특정 파일을 여는 단축키를 일일이 만드는 것은 한계가 있습니다. 그래서 고수들은 **"설정 디렉토리를 루트(Root)로 하는 전용 탐색기"**를 하나 만들어 두고, 거기서 모든 것을 해결합니다.
+--
+-- 단순히 폴더를 여는 것이 아니라, Telescope의 강력한 기능을 섞어서 사용하는 세 가지 핵심 레벨을 알려드릴게요.
+--
+-- 1. 레벨 1: 설정 디렉토리 전용 'Live Grep'과 'Find Files'
+--
+-- 가장 대중적인 방법입니다. 설정 파일 내의 특정 단어(예: create_user_command가 어디 있었더라?)를 찾기 위해 설정 폴더 전체를 대상으로 검색합니다.
+--
+-- ```Lua
+-- local builtin = require('telescope.builtin')
+--
+-- -- 1. 설정 파일 목록 검색 (파일명으로 찾기)
+-- vim.keymap.set('n', '<leader>fc', function()
+--   builtin.find_files({ cwd = vim.fn.stdpath("config") })
+-- end, { desc = "Search Config Files" })
+--
+-- -- 2. 설정 파일 내용 검색 (텍스트로 찾기 - 매우 유용!)
+-- vim.keymap.set('n', '<leader>gc', function()
+--   builtin.live_grep({ cwd = vim.fn.stdpath("config") })
+-- end, { desc = "Grep in Config Files" })
+-- ```
+--
+-- 2. 레벨 2: 별도의 'Config' 전용 함수/메뉴 만들기
+--
+-- 고수들은 이 과정을 하나의 독립된 함수로 만들어 관리합니다. commands.lua나 별도의 utils.lua에 아래와 같이 정의해두고 호출합니다.
+--
+-- ```Lua
+-- local M = {}
+--
+-- M.search_dotfiles = function()
+--   require("telescope.builtin").find_files({
+--     prompt_title = "< Neovim Config >",
+--     cwd = vim.fn.stdpath("config"),
+--     follow = true, -- 심볼릭 링크도 추적
+--   })
+-- end
+--
+-- return M
+-- ```
+--
+-- 이렇게 하면 어디서든 lua 함수 하나로 설정 파일 탐색기를 호출할 수 있습니다.
+--
+-- 3. 레벨 3: 전용 테마와 레이아웃 적용 (진짜 고수의 디테일)
+--
+-- 화면 중앙을 가리는 큰 창 대신, 설정 변경은 보통 코딩 중에 잠깐 하는 일이므로 **드롭다운(Dropdown)**이나 커서(Cursor) 테마를 사용해 작게 띄우는 것을 선호합니다.
+--
+-- ```Lua
+-- -- Telescope의 'ivy' 또는 'dropdown' 테마를 적용하여 시야를 방해하지 않음
+-- vim.keymap.set('n', '<leader>en', function()
+--   require('telescope.builtin').find_files(
+--     require('telescope.themes').get_dropdown({
+--       cwd = vim.fn.stdpath("config"),
+--       previewer = false, -- 설정 파일은 이름만 봐도 아니까 프리뷰어 끄기 (공간 확보)
+--       prompt_title = "NVIM SETTINGS",
+--     })
+--   )
+-- end)
+-- ```
+--
+-- * 고수들이 이 방식을 쓰는 이유 (Key Benefits)
+-- 	- 기억의 휘발성 방지: options.lua였는지 settings.lua였는지 기억할 필요가 없습니다. 그냥 <leader>en 누르고 opt라고 치면 끝납니다.
+--
+-- 	- 확장성: 새로운 모듈 파일(plugins/ui.lua 등)을 만들어도 단축키를 추가할 필요가 없습니다. Telescope가 자동으로 인식하니까요.
+--
+-- 	- Grep의 힘: "내가 예전에 만든 커맨드 이름이 뭐였지?" 싶을 때 설정 폴더 전체 Grep으로 0.1초 만에 찾아낼 수 있습니다.
+--
+-- * 요약: 당신의 commands.lua에 넣을 추천 코드
+--
+-- 기존의 :vi, :cnf 같은 약축어는 과감히 버리고, 아래 코드를 lua/config/keymaps.lua나 commands.lua에 넣어보세요.
+--
+-- ```Lua
+-- -- 설정 탐색 전용 단축키
+-- vim.keymap.set('n', '<leader>fz', function()
+--   require('telescope.builtin').find_files({
+--     cwd = vim.fn.stdpath("config"),
+--     prompt_title = "Config Files",
+--   })
+-- end, { desc = "설정 파일 탐색" })
+-- ```
+--
+-- 이제 :vi를 치는 대신 <leader>fz를 누르고 파일명 몇 글자만 쳐보세요. 훨씬 현대적인 워크플로우를 경험하실 겁니다.
+--
+-- 혹시 Telescope 외에도 파일 트리를 보여주는 nvim-tree나 neo-tree에서 설정 폴더를 바로 여는 방법도 궁금하신가요?
+--
+-- }}}
+--
+-- {{{ Telescope와 nvim-tree : 동시 활용
+-- 
+--  Question: 
+--
+--  혹시 이 :oc 을 실행했을 때 Telescope 화면이 바로 뜨게 하고 싶으신가요? 아니면 Nvim-tree가 열리게 하고 싶으신가요?
+--  nvim-tree가 열리게 하고 싶어요. 현재 내 설정은 telescope가 아직 설치되지 않아서, 자연스럽게 nvim-tree가 연동되어 열리게 되어 있어요. Telescope를 설치할 건데.... Telescope와 nvim-tree, 각각, cabbrev와의 연동이 틀리나요? 연동에 관해 아무 설정도 안 한다면, oc는 어느 것과 연동이 되나요? 그리고. telescope연동, nvim-tree연동, 뭐가 더 편리하고, 더 많이 사용하고 있나요? 다른 사람들/고수들은?
+--
+--  Answer :
+--
+-- 2. Telescope vs Nvim-tree, 연동 방식이 다른가요?
+-- --
+-- 네, 호출하는 Lua 함수가 다르기 때문에 설정 코드가 달라집니다.
+--
+-- Nvim-tree 연동 시: 폴더 구조를 보여주는 **'트리 사이드바'**를 엽니다.
+--
+-- Telescope 연동 시: 파일 목록을 보여주는 **'검색창 팝업'**을 엽니다.
+--
+-- 구현 예시 (lua/config/commands.lua 추천):
+--
+-- ```Lua
+-- -- Nvim-tree 연동 버전
+-- vim.api.nvim_create_user_command('OC', function()
+--   local config_path = vim.fn.stdpath("config")
+--   require("nvim-tree.api").tree.open({ path = config_path })
+-- end, { desc = "Nvim-tree로 설정 폴더 열기" })
+--
+-- -- Telescope 연동 버전 (나중에 설치하면 이걸로 교체)
+-- -- vim.api.nvim_create_user_command('OC', function()
+-- --   require('telescope.builtin').find_files({ cwd = vim.fn.stdpath("config") })
+-- -- end, { desc = "Telescope로 설정 파일 찾기" })
+--
+-- -- 약축어 등록 (소문자 oc를 치면 위에서 정의한 OC 실행)
+-- vim.cmd('cabbrev oc OC')
+-- ```
+--
+-- 3. 고수들은 무엇을 더 선호하고 편리해하나요?
+--
+-- 결론부터 말씀드리면 고수들은 Telescope 방식을 훨씬 더 많이 사용하고 선호합니다. 하지만 두 도구의 용도가 다르기 때문에 보통 둘 다 사용합니다.
+--
+-- * Telescope 연동이 대세인 이유 (더 편리한 점)
+--
+-- - 속도: init.lua를 수정하고 싶을 때, 트리를 열어서 폴더를 하나씩 타고 들어가는 것보다 :oc 엔터 후 init이라고 몇 글자 치는 게 압도적으로 빠릅니다.
+--
+-- - 흐름 유지: Nvim-tree는 사이드바를 열면서 화면 레이아웃을 밀어내지만, Telescope는 화면 중앙에 떴다가 파일 선택 시 사라지므로 작업 흐름이 깨지지 않습니다.
+--
+-- - 검색의 힘: 파일명뿐만 아니라 파일 안의 내용까지 검색(live_grep)할 수 있다는 점이 모듈화된 설정을 관리할 때 엄청난 강점입니다.
+--
+-- * Nvim-tree 연동을 쓰는 경우
+--
+-- - 구조 파악: "내가 lua/config/ 폴더 밑에 파일을 어떻게 나눴더라?" 하고 전체적인 모듈 구조를 한눈에 조망하고 싶을 때 사용합니다.
+--
+-- - 대규모 수정: 여러 파일을 동시에 왔다 갔다 하며 대대적으로 설정을 리팩토링할 때는 트리가 켜져 있는 것이 유리합니다.
+--
+-- 4. 최종 추천 가이드
+--
+-- 지금 모듈화를 시작하시는 단계라면 다음과 같은 전략을 추천합니다.
+--
+-- - 지금(Telescope 설치 전): :oc를 입력하면 Nvim-tree가 설정 폴더를 루트로 해서 열리도록 설정하세요. (위의 Nvim-tree 연동 코드 참고)
+--
+-- - Telescope 설치 후: :oc는 Telescope가 뜨도록 변경하고, <leader>et(Edit Tree) 같은 단축키를 하나 따로 만들어서 Nvim-tree가 설정 폴더를 열도록 하세요.
+--
+-- 한 줄 요약: 매일매일 간단한 설정을 바꿀 때는 Telescope가 압도적으로 편하고, 전체적인 모듈 구조를 바꿀 때는 Nvim-tree가 좋습니다. 고수들은 **"빠른 이동은 Telescope, 구조 관리는 Nvim-tree"**로 역할을 분담해서 씁니다.
+--
+-- }}}
+--
+--
+-- -----------------------------------------------
+-- -----------------------------------------------
+-- -----------------------------------------------
+-- -----------------------------------------------
+-- -----------------------------------------------
+-- -----------------------------------------------
+-- -----------------------------------------------
+-- -----------------------------------------------
+--
+--
+--
+--
+--
+-- vim: set foldmethod=marker foldmarker={{{,}}}:

@@ -1,0 +1,161 @@
+-- -----------------------------------------------
+-- 1단계: 최소 단위 테스트 코드
+-- -----------------------------------------------
+
+-- --[[
+-- --
+-- return {
+--   -- 1. LuaSnip 본체 (다른 모든 소스 로더 제거)
+--   {
+--     "L3MON4D3/LuaSnip",
+--     dependencies = {
+--       -- 오직 이 레이텍 플러그인만 의존성으로 등록
+--       "iurimateus/luasnip-latex-snippets.nvim",
+--     },
+--     config = function()
+--       local ls = require("luasnip")
+--
+--       -- 🌟 자동 변환을 포함한 모든 부가 옵션을 끄고 순수 초기화만 진행
+--       ls.config.setup({})
+--
+--       -- 🌟 외부 레이텍 플러그인을 강제로 로드하여 LuaSnip에 주입
+--       require("luasnip-latex-snippets").setup({
+--         use_treesitter = false, -- Treesitter 간섭을 줄이기 위해 우선 false로 테스트
+--       })
+--     end,
+--   },
+--
+--   -- 2. Blink.cmp (LuaSnip 엔진과 최소 연결)
+--   {
+--     "saghen/blink.cmp",
+--     version = "*",
+--     opts = {
+--       keymap = { preset = "default" },
+--       snippets = {
+--         preset = "luasnip", -- Blink가 LuaSnip을 바라보도록 설정
+--       },
+--       sources = {
+--         default = { "snippets" }, -- 다른 추천 소스를 다 끄고 오직 스니펫만 띄우기
+--       },
+--     },
+--   },
+-- }
+-- --]]
+
+
+-- -----------------------------------------------
+-- 2단계: 수식 조건 감지 코드
+-- -----------------------------------------------
+-- --[[
+-- --
+-- return {
+--   -- 1. 트리시터 설정 (VimTeX 대신 수식 영역을 감지하기 위한 필수 베이스)
+--   -- {
+--   --   "nvim-treesitter/nvim-treesitter",
+--   --   build = ":TSUpdate",
+--   --   config = function()
+--   --     require("nvim-treesitter.configs").setup({
+--   --       -- 🌟 레이텍 문법 파서를 반드시 설치합니다.
+--   --       ensure_installed = { "latex" }, 
+--   --       highlight = { enable = true },
+--   --     })
+--   --   end,
+--   -- },
+--
+--   -- 2. LuaSnip 및 레이텍 스니펫 설정
+--   {
+--     "L3MON4D3/LuaSnip",
+--     dependencies = {
+--       "iurimateus/luasnip-latex-snippets.nvim",
+--     },
+--     config = function()
+--       local ls = require("luasnip")
+--       ls.config.setup({}) -- 자동 변환은 디버깅을 위해 아직 꺼둡니다.
+--
+--       -- 🌟 외부 레이텍 플러그인에 트리시터 연동을 켭니다.
+--       -- 🌟 핵심: use_treesitter = true를 켜서 
+--       -- 에러가 났던 'vimtex#syntax#in_mathzone' 함수 호출을 완전히 차단합니다.
+--       require("luasnip-latex-snippets").setup({
+--         use_treesitter = true, -- 이제 트리시터 기반 수식 감지가 동작합니다.
+--       })
+--     end,
+--   },
+--
+--   -- 3. Blink.cmp 설정
+--   {
+--     "saghen/blink.cmp",
+--     version = "*",
+--     opts = {
+--       keymap = { preset = "default" },
+--       snippets = { preset = "luasnip" },
+--       sources = { default = { "snippets" } },
+--     },
+--   },
+-- }
+-- --]]
+
+-- -----------------------------------------------
+-- 3단계: 최종 자동 변환 활성화 코드
+-- -----------------------------------------------
+return {
+  -- 1. 트리시터 설정 (수식 영역 감지 유지)
+  -- {
+  --   "nvim-treesitter/nvim-treesitter",
+  --   build = ":TSUpdate",
+  --   config = function()
+  --     require("nvim-treesitter.configs").setup({
+  --       ensure_installed = { "latex" },
+  --       highlight = { enable = true },
+  --     })
+  --   end,
+  -- },
+
+  -- 2. LuaSnip 본체 & 자동 변환 전역 활성화
+  {
+    "L3MON4D3/LuaSnip",
+    dependencies = {
+      "iurimateus/luasnip-latex-snippets.nvim",
+    },
+    config = function()
+      local ls = require("luasnip")
+
+      -- 🌟 핵심: LuaSnip 본체에 자동 변환 옵션을 주입합니다.
+      ls.config.setup({
+        enable_autosnippets = true, -- 자동 스니펫 전역 활성화
+        -- 타이핑 시 글자가 바뀔 때마다 실시간으로 스니펫 조건식을 평가합니다.
+        update_events = "TextChanged,TextChangedI",
+      })
+
+      -- 레이텍 외부 플러그인 로드 (트리시터 연동)
+      require("luasnip-latex-snippets").setup({
+        use_treesitter = false, -- whether to use treesitter to determine if cursor is in math mode; if false, vimtex is used
+        allow_on_markdown = true, -- whether to add snippets to markdown filetype
+        --
+      })
+    end,
+  },
+
+  -- 3. Blink.cmp 설정 (완성 소스 복구)
+  -- {
+  --   "saghen/blink.cmp",
+  --   version = "*",
+  --   opts = {
+  --     keymap = { preset = "default" },
+  --     snippets = {
+  --       preset = "luasnip", -- Blink가 LuaSnip을 바라보도록 고정
+  --     },
+  --     -- sources = {
+  --     --   -- 디버깅용으로 껐던 기본 추천 소스(LSP, 경로 등)를 다시 안전하게 복구합니다.
+  --     --   default = { "lsp", "path", "snippets", "buffer" },
+  --     -- },
+  --     sources = { default = { "snippets" } },
+  --   },
+  -- },
+
+
+}
+
+
+
+
+

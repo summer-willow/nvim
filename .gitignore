@@ -1,0 +1,8 @@
+# .gitignore : 깃이 버전 관리나 업로드에서 제외할 파일과 폴더 목록을 적어두는 설정 파일
+# Neovim 임시 파일 및 캐시
+.netrwhist
+*~
+*.swp
+*.swo
+spell/
+plugin/

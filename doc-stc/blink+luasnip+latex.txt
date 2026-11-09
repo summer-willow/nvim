@@ -1,0 +1,124 @@
+-- ---------------------------------------
+-- ---------------------------------------
+
+Neovim에서 lazy.nvim 패키지 관리자를 사용해 세 가지 플러그인을 설치하고 연동하는 방법입니다. LuaSnip을 스니펫 엔진으로 사용하도록 blink.cmp에 프리셋을 설정하고, LaTeX 스니펫을 활성화합니다.
+
+
+1. 플러그인 설치
+lua/plugins/completion.lua (또는 사용하는 설정 파일)에 다음 코드를 추가합니다:
+
+return {
+  -- 자동완성 엔진
+  {
+    'saghen/blink.cmp',
+    dependencies = {
+      'L3MON4D3/LuaSnip', -- 스니펫 엔진
+      'evesdropper/luasnip-latex-snippets.nvim', -- LaTeX 스니펫
+    },
+    opts = {
+      snippets = { preset = 'luasnip' }, -- LuaSnip 프리셋 사용
+    },
+  },
+
+  -- 스니펫 엔진 (의존성으로 설치되지만 세부 설정 가능)
+  { 'L3MON4D3/LuaSnip' },
+
+  -- LaTeX 스니펫
+  {
+    'evesdropper/luasnip-latex-snippets.nvim',
+    ft = 'tex', -- .tex 파일에서만 로드
+    dependencies = { 'L3MON4D3/LuaSnip' },
+  },
+}
+
+
+2. 스니펫 자동 불러오기 설정 (선택 사항)
+
+luasnip-latex-snippets의 스니펫을 자동으로 로드하려면 Neovim 설정 파일(예: init.lua)에 다음을 추가해 vimtex와 연동되도록 설정하세요.
+
+
+require('luasnip.loaders.from_lua').lazy_load()
+require('luasnip.loaders.from_snipmate').lazy_load()
+require('luasnip.loaders.from_vscode').lazy_load()
+
+-- LuaSnip과 Vimtex 연동
+require('luasnip').filetype_extend("tex", { "texmath" })
+
+
+이 설정들을 적용한 뒤 Neovim을 재시작하고 :Lazy sync 명령어를 입력하면 설치가 완료됩니다.
+
+설치 후 스니펫이 제대로 동작하지 않거나 다른 언어의 스니펫을 추가하고 싶으시다면 다음 내용을 알려주세요:
+
+사용 중인 기타 플러그인 (예: VimTeX, LSP 설정 등)
+
+어떤 스니펫(LaTeX 등)을 주로 테스트해 보고 싶으신지
+
+-- ---------------------------------------
+-- ---------------------------------------
+
+blink.cmp에서 LuaSnip과 LaTeX 스니펫을 연동하려면, luasnip을 blink.cmp의 스니펫 엔진으로 설정하고 스니펫 제공자를 추가해야 합니다. 가장 널리 쓰이는 패키지 매니저인 lazy.nvim을 기준으로 한 설치 및 설정 방법입니다.
+
+1. 플러그인 설치
+
+
+lua/plugins/completion.lua (또는 사용하는 플러그인 파일)에 아래 코드를 추가하여 패키지를 설치합니다.
+
+
+return {
+  -- blink.cmp 자동완성 엔진
+  {
+    'saghen/blink.cmp',
+    dependencies = { 'rafamadriz/friendly-snippets' },
+    version = '*',
+    opts = {
+      snippets = {
+        preset = 'luasnip', -- LuaSnip을 스니펫 프리셋으로 사용
+      },
+      sources = {
+        -- 사용할 자동완성 소스 우선순위 설정
+        default = { 'lsp', 'path', 'snippets', 'buffer' },
+      },
+    },
+  },
+
+  -- LuaSnip 스니펫 엔진
+  {
+    'L3MON4D3/LuaSnip',
+    dependencies = { 'rafamadriz/friendly-snippets' }, -- 다양한 언어 기본 스니펫
+    config = function()
+      -- VS Code 스타일 스니펫 로드
+      require("luasnip.loaders.from_vscode").lazy_load()
+    end
+  },
+
+  -- LaTeX용 스니펫 모음
+  {
+    'iurinstalled/luasnip-latex-snippets.nvim',
+    dependencies = { 'L3MON4D3/LuaSnip' },
+    ft = 'tex', -- .tex 파일에서만 로드
+    config = function()
+      require('luasnip-latex-snippets').setup()
+    end
+  },
+}
+
+
+2. 스니펫 키 매핑 설정
+
+자동완성 중 스니펫 필드 간 이동(Tab 및 Shift-Tab)이 가능하도록 blink.cmp의 키 설정에 아래 항목을 추가합니다.
+
+opts = {
+  keymap = {
+    preset = 'enter', -- 기본 엔터키 동작
+    ['<Tab>'] = { 'snippet_forward', 'fallback' }, -- 스니펫 다음 필드로 이동
+    ['<S-Tab>'] = { 'snippet_backward', 'fallback' }, -- 스니펫 이전 필드로 이동
+  }
+}
+
+
+
+혹시 현재 사용 중이신 Neovim 배포판(LazyVim, AstroNvim 등)이 있으신가요? 아니면 개별 커스텀 설정 파일을 사용하고 계신지 알려주시면, 상황에 맞게 lua 파일의 정확한 경로 및 적용법을 안내해 드리겠습니다.
+
+
+
+

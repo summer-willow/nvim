@@ -1,0 +1,34 @@
+# Fdb version 4
+["xdvipdfmx"] 1783164790.95337 "aaa02.xdv" "aaa02.pdf" "aaa02" 1783164791.66154 0
+  "aaa02.xdv" 1783164790 1712 b4f1c5cc49ee1421c71009973b60f8fb "xelatex"
+  (generated)
+  "aaa02.pdf"
+  (rewritten before read)
+["xelatex"] 1783164786.41478 "aaa02.tex" "aaa02.xdv" "aaa02" 1783164791.66055 0
+  "aaa02.aux" 1783164790 32 3985256e7290058c681f74d7a3565a19 "xelatex"
+  "aaa02.tex" 1783164781 622 f81010a9f82d4a43fcde3dc2718b90bf ""
+  "c:/texlive/2026/texmf-dist/tex/generic/unicode-data/EastAsianWidth.txt" 1776590651 201595 7aebda73a4d36c18e733744d2c116566 ""
+  "c:/texlive/2026/texmf-dist/tex/generic/unicode-data/LineBreak.txt" 1776590651 263180 308aaa1d8c3664c5d7e527d658325c1c ""
+  "c:/texlive/2026/texmf-dist/tex/generic/unicode-data/load-unicode-xetex-classes.tex" 1776590651 7139 b63d8048653b4c8ff60ec664de193f82 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/base/article.cls" 1776589875 20144 b966087dda3b194755eb460d32e2ef75 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/base/fontenc.sty" 1776589875 5275 6f9d359641b36842524cdb97716ab75f ""
+  "c:/texlive/2026/texmf-dist/tex/latex/base/size10.clo" 1776589875 8448 686612a86f0e04f41ea577f5ec7e83d8 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/cjk-ko/kolabels-utf.sty" 1776589288 4624 c01180d27e7528d224448437230c9abd ""
+  "c:/texlive/2026/texmf-dist/tex/latex/cjk-ko/kotex.sty" 1776589288 2685 8d35731069cc5b999fa454041849755e ""
+  "c:/texlive/2026/texmf-dist/tex/latex/fontspec/fontspec-xetex.sty" 1776589676 164714 a0cc5579dc5aec4384653d8dd1b3832a ""
+  "c:/texlive/2026/texmf-dist/tex/latex/fontspec/fontspec.cfg" 1776589676 549 c4adac819276241fea8eb79c5ab7b99e ""
+  "c:/texlive/2026/texmf-dist/tex/latex/fontspec/fontspec.sty" 1776589676 3804 debc05110ffb506cef68ea4e72c7bcee ""
+  "c:/texlive/2026/texmf-dist/tex/latex/kotex-utf/kotex.cfg" 1776589859 116 6b58d0324c3872aa7a0246623570f6ac ""
+  "c:/texlive/2026/texmf-dist/tex/latex/kotex-utf/kotexutf.sty" 1776589859 18844 ba8583240a728d1ca4770387b91e2e07 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/l3backend/l3backend-xetex.def" 1776589867 32682 e8e9b6eadc6ea167c7d41a9120ebbad7 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/l3kernel/expl3.sty" 1776589868 6558 45786cbbf5684a09ee65aa45a7b367e0 ""
+  "c:/texlive/2026/texmf-dist/tex/latex/l3packages/xparse/xparse.sty" 1776589869 10176 c2fc1c663b3f3899ddac6e6ed3fb1d7e ""
+  "c:/texlive/2026/texmf-dist/tex/xetex/xetexko/xetexko.sty" 1776590729 95394 d9a796cbaffd3d4e34a935a941ba883d ""
+  "c:/texlive/2026/texmf-dist/web2c/texmf.cnf" 1776589102 43630 e9fa012910491fe5ae08a72c3c2997a7 ""
+  "c:/texlive/2026/texmf-var/web2c/xetex/xelatex.fmt" 1776590871 5948912 d447e4f5ac214b59c6ee769aa873eebe ""
+  "c:/texlive/2026/texmf.cnf" 1776590780 713 e69b156964470283e0530f5060668171 ""
+  (generated)
+  "aaa02.aux"
+  "aaa02.log"
+  "aaa02.xdv"
+  (rewritten before read)

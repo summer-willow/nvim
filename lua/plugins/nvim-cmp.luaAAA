@@ -1,0 +1,256 @@
+-- Autocompletion
+
+-- ==============================================
+-- ----------------------------------------------
+-- {{{{ nvim-cmp 설정
+-- nvim-cmp 
+-- NOTE: kickstart.nvim의 자동완성기능 설정인 blink.cmp를 nvim-cmp로 비꾼 후 주의사항:
+-- NOTE: LSP 설정: kickstart.nvim의 lspconfig 설정 부분에서 capabilities 변수가 nvim-cmp를 지원하도록 설정되어 있는지 확인하세요. (보통 기본으로 포함되어 있습니다.)
+-- ==> 여기에 따른 수정을 lsp.lua에서 했음.
+--
+-- cf) blink.cmp의 기본(default) 동작은 보통 다음과 같습니다:
+-- Enter (<CR>): 선택된 항목 확정 (Confirm)
+-- Ctrl + n / Ctrl + p: 다음/이전 항목으로 이동
+-- Ctrl + y: (Blink 기본값은 아니나 대중적임) 선택 확정
+-- Ctrl + Space: 수동으로 완성 창 열기
+--
+-- NOTE: 명령행 자동완성 기능 추가
+-- 'hrsh7th/cmp-cmdline' 플러그인 추가하여, 명령행에서 글자를 칠 때마다 자동으로 목록을 띄워주는 기능을 확장시킴
+
+-- ----------------------------------------------
+
+--[[
+return {
+  -- 1. 핵심 엔진 및 소스들 설치
+  'hrsh7th/nvim-cmp',
+  -- event = 'InsertEnter',
+  -- 명령행 자동완성을 위해 CmdlineEnter 이벤트를 추가
+  event = { 'InsertEnter', 'CmdlineEnter' },
+  dependencies = {
+    -- 코드 조각 엔진 및 관련 소스
+    {
+      'L3MON4D3/LuaSnip',
+      -- luasnip: 코드 조각(Snippet)을 관리하고 확장해 주는 엔진
+      build = (function()
+        -- 윈도우 환경에서 빌드 에러 방지를 위한 조건부 실행
+        if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
+          return
+        end
+        return 'make install_jsregexp'
+      end)(),
+      dependencies = {
+        -- vscode 스타일의 다양한 언어별 스니펫 모음집
+        'rafamadriz/friendly-snippets',
+      },
+    },
+    'saadparwaiz1/cmp_luasnip',
+
+    -- LSP 및 버퍼, 경로 관련 소스
+    'hrsh7th/cmp-nvim-lsp', -- cmp-nvim-lsp: lsp 서버로부터 자동완성 데이터를 가져오는 연결 다리
+    'hrsh7th/cmp-path',
+    'hrsh7th/cmp-buffer',
+    'hrsh7th/cmp-cmdline', -- 명령행 자동완성 지원
+
+    -- 아이콘 표시를 위한 플러그인
+    'onsails/lspkind.nvim', -- lspkind: 자동완성 목록 옆에 함수, 변수 등을 나타내는 아이콘을 붙여 시인성을 높여줌
+  },
+  config = function()
+    local cmp = require 'cmp'
+    local luasnip = require 'luasnip'
+    require('luasnip.loaders.from_vscode').lazy_load()
+    luasnip.config.setup {}
+
+    -- 기본 자동완성 설정 (Insert 모드)
+    cmp.setup {
+      snippet = {
+        expand = function(args)
+          luasnip.lsp_expand(args.body)
+        end,
+      },
+      completion = { completeopt = 'menu,menuone,noinsert' },
+
+      -- ----------------------------------------
+      -- 가장 대중적인 단축키 설정 (Tab 사용 가능)
+      -- {{{
+      mapping = cmp.mapping.preset.insert {
+      -- ['<CR>'] = cmp.mapping.confirm { select = false },
+      -- Enter (<CR>): nvim-cmp는 기본적으로 사용자가 C-n/p로 명시적으로 항목을 선택하지 않은 상태에서 엔터를 치면, 자동완성을 무시하고 줄바꿈을 수행
+        ['<C-n>'] = cmp.mapping.select_next_item(), -- 다음 항목
+        ['<C-p>'] = cmp.mapping.select_prev_item(), -- 이전 항목
+
+        -- ---------------------
+        -- by stc
+        -- 기존의 <C-n>, <C-p> 설정과 함께 <C-j>, <C-k> 도 병행 사용
+        ['<C-j>'] = cmp.mapping.select_next_item(), -- 아래 항목 선택
+        ['<C-k>'] = cmp.mapping.select_prev_item(), -- 위 항목 선택
+        --
+        -- by stc, end
+        -- ---------------------
+
+
+        ['<C-b>'] = cmp.mapping.scroll_docs(-4),    -- 문서 위로 스크롤
+        ['<C-f>'] = cmp.mapping.scroll_docs(4),     -- 문서 아래로 스크롤
+        ['<C-y>'] = cmp.mapping.confirm { select = true }, -- 선택 완료
+        ['<C-Space>'] = cmp.mapping.complete {},    -- 수동 완성 창 띄우기
+
+        -- cf) 
+        -- 만약 Tab 키를 이동 수단으로 쓰고 싶지 않다면 
+        -- 아래 Tab 설정을 아예 삭제하거나 주석 처리하면 
+        -- 오직 Ctrl-n/p와 Enter만 사용하는 '순수 기본값'이 됩니다.
+        --
+        -- Tab 키로 자동완성 항목 이동 및 스니펫 점프
+        -- ['<Tab>'] = cmp.mapping(function(fallback)
+        --   if cmp.visible() then
+        --     cmp.select_next_item()
+        --   elseif luasnip.expand_or_locally_jumpable() then
+        --     luasnip.expand_or_jump()
+        --   else
+        --     fallback()
+        --   end
+        -- end, { 'i', 's' }),
+        -- ['<S-Tab>'] = cmp.mapping(function(fallback)
+        --   if cmp.visible() then
+        --     cmp.select_prev_item()
+        --   elseif luasnip.locally_jumpable(-1) then
+        --     luasnip.jump(-1)
+        --   else
+        --     fallback()
+        --   end
+        -- end, { 'i', 's' }),
+      },
+      -- }}}
+
+      -- ----------------------------------------
+      -- blink.cmp의 default 프리셋과 가장 유사한 설정
+      -- {{{
+      -- 사실, nvim-cmp의 기본 keymapping만으로도 99% 이상 동일하므로, 
+      -- 그냥 nvim-cmp의 keymapping으로 사용해도 된다.
+      -- mapping = cmp.mapping.preset.insert {
+      --   -- 엔터(<CR>)를 누르면 선택된 항목을 확정합니다.
+      --   -- 아무것도 선택되지 않았을 때는 그냥 줄바꿈이 됩니다.
+      --   ['<CR>'] = cmp.mapping.confirm { select = false },
+      --   -- {{{
+      --   -- select = false 의미
+      --   -- blink.cmp와 똑같이 느끼시려면 select = false로 해야 합니다
+      --   -- true: 목록이 떴을 때 첫 번째 항목이 자동으로 하이라이트 되며, 엔터만 쳐도 바로 입력됩니다.
+      --   -- false: 내가 Ctrl-n 등으로 직접 항목을 선택했을 때만 엔터로 입력됩니다. 선택하지 않고 엔터를 치면 그냥 줄바꿈이 됩니다. (이것이 일반적인 기본 동작입니다.)
+      --   -- }}}
+      --
+      --   -- Ctrl + n / p 로 목록을 위아래로 이동합니다.
+      --   ['<C-n>'] = cmp.mapping.select_next_item(),
+      --   ['<C-p>'] = cmp.mapping.select_prev_item(),
+      --
+      --   -- Ctrl + b / f 로 설명창을 위아래로 스크롤.
+      --   ['<C-b>'] = cmp.mapping.scroll_docs(-4), -- 뒤로(위로) 4줄 스크롤
+      --   ['<C-f>'] = cmp.mapping.scroll_docs(4),  -- 앞으로(아래로) 4줄 스크롤
+      --
+      --   -- 수동으로 자동완성 창을 띄우고 싶을 때 사용합니다.
+      --   ['<C-Space>'] = cmp.mapping.complete(),
+      --
+      --   -- 창을 닫고 싶을 때 사용합니다.
+      --   ['<C-e>'] = cmp.mapping.abort(),
+      --
+      --   -- 만약 Tab 키를 이동 수단으로 쓰고 싶지 않다면 
+      --   -- 아래 Tab 설정을 아예 삭제하거나 주석 처리하면 
+      --   -- 오직 Ctrl-n/p와 Enter만 사용하는 '순수 기본값'이 됩니다.
+      -- },
+      -- }}}
+
+      -- ----------------------------------------
+      -- 가장 깔끔한 최종 형태
+      -- {{{
+      -- 가장 깔끔한 최종 형태
+      -- nvim-cmp의 cmp.mapping.preset.insert는 이미 가장 대중적이고 표준적인 아래 키 매핑을 내장하고 있다
+        -- <C-n> / <C-p>: 목록 이동
+        -- <C-y>: 확인 (Confirm)
+        -- <C-e>: 닫기 (Abort)
+      --
+      -- 따라서, 특이한 취향이 아니라면 별도의 복잡한 매핑 정의 없이도 사용 가능하다.
+      -- 만약 mapping 섹션을 아예 비우거나 최소화해도, cmp.mapping.preset.insert를 사용 중이라면 
+      -- nvim-cmp의 기본keymapping 만으로도 충분하므로
+      -- 불필요한 코드를 걷어내고 딱 필요한 것만 남기면 된다. (아래와 같이)
+      -- mapping = cmp.mapping.preset.insert {
+      --   -- 그냥 기본값만 쓰고 싶다면 이 안을 완전히 비워두거나,
+      --   -- 아래처럼 엔터만 명시적으로 남겨두는 정도로 충분합니다.
+      --   ['<CR>'] = cmp.mapping.confirm { select = false },
+      --
+      --   -- <C-b>, <C-f>는 기본 preset에 포함되지 않는 경우가 많으므로
+      --   -- 필요할 때만 추가하면 됩니다.
+      --   -- ['<C-b>'] = cmp.mapping.scroll_docs(-4),    -- 문서 위로 스크롤
+      --   -- ['<C-f>'] = cmp.mapping.scroll_docs(4),     -- 문서 아래로 스크롤
+      -- },
+      --
+      -- }}}
+      --
+      -- 자동완성 데이터 출처 우선순위
+      sources = {
+        { name = 'nvim_lsp' }, -- 1순위: LSP
+        { name = 'luasnip' },  -- 2순위: Snippets
+        -- { name = 'buffer' },   -- 3순위: 현재 파일 내 단어
+        { name = 'path' },     -- 4순위: 파일 경로
+        { name = 'obsidian' }, -- [중요] obsidian.nvim 연동을 위해 추가
+      },
+
+      -- 아이콘 및 레이아웃 설정 (lspkind 사용)
+      formatting = {
+        format = require('lspkind').cmp_format {
+          mode = 'symbol_text',
+          maxwidth = 50,
+          ellipsis_char = '...',
+        },
+      },
+    }
+
+    -- -----------------------------------------------------------
+    -- 명령행(/, ?) 검색 자동완성 설정
+    -- -----------------------------------------------------------
+    cmp.setup.cmdline({ '/', '?' }, {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = {
+        { name = 'buffer' },
+      },
+    })
+
+    -- -----------------------------------------------------------
+    -- 명령행(:) 커맨드 자동완성 설정
+    -- -----------------------------------------------------------
+    cmp.setup.cmdline(':', {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = cmp.config.sources({
+        { name = 'path' },
+        { name = 'cmdline', max_item_count = 10 } -- 목록을 최대 10개까지만 표시
+      }),
+      formatting = {
+        format = function(entry, vim_item)
+          -- 목록의 너비를 제한
+          local max_width = 25 -- 원하는 최대 너비
+
+          -- 내용이 최대너비보다 길때, 내용의 앞부분이 생략되어 ..로 표시되기
+          local label = vim_item.abbr
+          local label_len = #label
+          if label_len > max_width then
+            -- 뒷부분을 남기고 앞부분을 잘라냄
+            -- vim_item.abbr: 실제 목록에 표시되는 텍스트(Abbreviation) 입니다. 이 문자열을 `string.sub`로 잘라내어 너무 길어지지 않게 만듭니다.
+            -- 앞부분을 자르고 앞에 ".." 또는 "…"을 붙임
+            -- 뒤에서부터 (max_width - 2)만큼의 글자를 가져옵니다.
+            vim_item.abbr = ".." .. string.sub(label, label_len - max_width + 3)
+            -- 전체 길이(label_len)에서 우리가 보고 싶은 너비(max_width)만큼을 뺀 지점을 시작점으로 잡으면 뒷부분이 보존됩니다.
+            -- string.sub(label, start_index): 이 함수는 start_index부터 문자열의 끝까지를 반환합니다.
+            -- + 3의 이유: 앞에 붙일 생략 기호(..)의 길이만큼 공간을 확보하기 위함입니다.
+          end
+          return vim_item
+        end,
+      },
+    })
+  end,
+}
+--]]
+--
+-- }}}
+-- ==============================================
+
+
+
+
+
+-- vim: set foldmethod=marker foldmarker={{{,}}}:

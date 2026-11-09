@@ -1,0 +1,318 @@
+
+local ls = require("luasnip")
+local s = ls.snippet
+local t = ls.text_node
+local i = ls.insert_node
+local f = ls.function_node
+-- f: function_node의 약자로, 스니펫이 실행되는 순간에 Lua 함수를 실행하여 그 결과물(텍스트)을 동적으로 화면에 뿌려주는 LuaSnip 전용 노드입니다.
+
+-- 자동 확장 속성을 강제로 주입하는 함수
+-- 일반 스니펫 구조(s(...))에 자동 확장 속성(snippetType = "autosnippet")을 강제로 주입하는 단축 함수.
+local as = function(context, nodes)
+  context.snippetType = "autosnippet" -- 이 한 줄이 자동완성 팝업창을 완전히 건너뛰게 만듭니다.
+  return s(context, nodes)
+end
+--{{{
+--[[
+## LuaSnip의 자동스니펫 구분방법
+- LuaSnip 엔진 내부에는 스니펫을 저장하는 방이 크게 2가지로 나뉩니다.
+  1. snippets 방 (탭이나 확정을 눌러야 터지는 일반 스니펫)
+  2. autosnippets 방 (입력 즉시 터지는 자동 스니펫)
+-LuaSnip 엔진이 개별 스니펫 객체를 검사할 때, snippetType = "autosnippet"이 있으면 엔진은 무조건 이 스니펫을 2번 방(autosnippets)으로 집어넣습니다.
+
+## LuaSnip 엔진이 완벽하게 지원하는 '자동스니펫'' 설정 (순정)방법.
+s({ trig = "xnn", wordTrig = true, snippetType = "autosnippet" }, {
+  t("summer_willow")
+}),
+- 단점: s() 함수 설정란마다 snippetType = "autosnippet"을 일일이 타이핑 해야하는 불편함 발생.
+- ==> as 함수를 만들어 해결: 위 방식이 너무 귀찮아서, as()라는 자동 도장을 만들어 누를 때마다 snippetType = "autosnippet"이 자동으로 찍히게 만듦.
+
+## as 함수
+local as = function(context, nodes)
+- 의미: as 함수는 context와 nodes라는 2개의 인자를 넘겨받는다.
+- 이들 인자들은 table 형태도 가능하다.
+- 인자 이름은 아무거나 해도 됨, ex) local as = function(aaa, bbb)
+
+  context.snippetType = "autosnippet"
+  - 의미: 넘겨받은 첫 번째 인자 안에 에 `snippetType = "autosnippet"` 를 강제로 삽입
+
+  return s(context, nodes)
+  - 의미: context와 nodes를 LuaSnip의 순정 빌더 함수인 `s(...)`에게 전달.
+  - 그리고 그 `s(...)`가 최종적으로 완성해 낸 스니펫 객체를 return
+
+## 실제 as(...)의 실행 결과
+ex) 
+as({ trig = "xnn", wordTrig = true, desc = "기본 상용구 고정 텍스트" }, {
+  t("summer_willow")
+}),
+
+-- 컴퓨터가 최종적으로 이해하는 최종 명령의 정체
+s({ 
+  trig = "xnn", 
+  wordTrig = true, 
+  desc = "기본 상용구 고정 텍스트", 
+  snippetType = "autosnippet" 
+}, { 
+  t("summer_willow") 
+})
+
+--결과적으로, LuaSnip 엔진이 완벽하게 지원하는 '자동스니펫'' 설정 (순정)방법이 완성된다.
+s({ trig = "xnn", wordTrig = true, snippetType = "autosnippet" }, {
+  t("summer_willow")
+}),
+--]]
+--}}}
+
+-- -- ---------------------------------------
+-- Visual Selection Snippet Trigger을 가능하게 해주는 헬퍼 함수 불러오기
+-- cf) Visual Selection Snippet Trigger (비주얼 선택 영역 스니펫 트리거 = Variables from Selection)
+
+-- 🌟 공통 유틸리티 파일에서 헬퍼 함수 불러오기 
+local util = require("utils.luasnip_util")
+
+-- ---------------------------------------
+
+return {
+
+  -------------------------------------------------------------
+  -- [A 그룹] 입력 즉시 바로 터지는 자동 스니펫 (autosnippet)
+  -- 즉, nvim에서의 상용구(Abbreviation, 줄임말) 역활을 한다.
+  -------------------------------------------------------------
+
+  as({ trig = "xxx", wordTrig = true, desc = "testing in return format" }, {
+    t("xxxxxx summer_willow")
+  }),
+
+-- 1. xnn 자동 스니펫
+  as({ trig = ";xnn", wordTrig = true, desc = "기본 상용구 고정 텍스트" }, {
+    t("summer_willow")
+  }),
+
+  -- xll (labelling) --> useful for labeling_index in LaTeX 
+  as({ trig = ";xll", wordTrig = true, desc = "(labeling_indwx) 현재 날짜/시간 동적 출력" }, {
+    f(function()
+      -- os.date: 현재 시스템의 날짜와 시간을 원하는 형식 문자열로 반환하는 Lua 내장 함수
+      return os.date('%Y_%m_%d_%H_%M_%S')
+    end)
+  }),
+
+  -- xdd (date)
+  as({ trig = ";xdd", wordTrig = true, desc = "현재 날짜/시간 동적 출력" }, {
+    f(function()
+      return os.date('%Y-%m-%d %H:%M:%S')
+    end)
+  }),
+
+  -- xtt (time), 24시간 형식
+  as({ trig = ";xtt", wordTrig = true, desc = "현재 시각(시:분:초) 동적 출력" }, {
+    f(function()
+      -- %H는 00 ~ 23 형식
+      return os.date('%H:%M:%S')
+    end)
+  }),
+
+  -- 주석 가로 분리선: Comment (주석) 또는 Comment Marker (주석 표시선)
+  as({ trig = ";cmm", wordTrig = true, desc = "주석 라인([C]o[M]ment [M]arker) 분리선 생성" }, {
+    -- t("-- -------------------------------------------------------------")
+    -- t("-- ----------------------------------------")
+    t("----------------------------------------")
+  }),
+
+
+  -------------------------------------------------------------
+  -- [B 그룹] 필요할 때 골라 쓰는 일반 스니펫 (선택 사항)
+  -- 기존처럼 목록 창이 뜨고 선택(Confirm)해서 사용하는 형태입니다.
+  -------------------------------------------------------------
+
+  -- (test)
+  -- s({ trig = "example-normal", desc = " (test) 일반 스니펫 예시" }, {
+
+  -- s({ trig = "exam", desc = " (test) 일반 스니펫 예시", name = "See? ya ?" }, {
+  --   t("This is normal snippet")
+  -- }),
+
+
+-- s({ trig = "exam", name = "See? ya?", desc = "(test) 일반 스니펫 예시" }, {
+--   t("This is normal snippet")
+-- }),
+
+s({ trig = "aaaaexam", name = "See? ya?", desc = "(test) 일반 스니펫 예시", detail = "See? ya?" }, {
+  t("This is normal snippet")
+}),
+
+-- 🌟 [정석 가이드] desc(설명) 영역의 앞부분에 우리가 보고 싶었던 이름을 같이 적어줍니다.
+-- s({ 
+--   trig = "exam", 
+--   name = "See? ya ?", 
+--   desc = "See? ya ? | (test) 일반 스니펫 예시" -- ➔ blink의 label_description과 doc에 완벽하게 걸립니다!
+-- }, {
+--   t("This is normal snippet")
+-- }),
+
+
+
+  s({ trig = "hi", wordTrig = true},
+    { t("Hellw, world! there")}
+  ),
+
+  s({ trig = "foo", wordTrig = true},
+    { t("another snippet summer_willow")}
+  ),
+
+  s({ trig = "heee", wordTrig = true},
+    { t("Heeeeellw, world! there")}
+  ),
+
+
+
+
+-- ---------------------------------------
+-- Visual Selection Snippet Trigger
+-- 예제 테스트 스니펫
+-- cf) Visual Selection Snippet Trigger (비주얼 선택 영역 스니펫 트리거 = Variables from Selection)
+
+  -- visula section block을 \texttb{...}으로 감싼다.
+  s({ trig = "bf" }, {
+    t("\\textbf{"),
+    -- 만약 비주얼 선택된 단어가 있다면 그걸 뱉고, 없으면 커서가 위치할 빈칸($1) 제공
+    f(util.get_visual, {}),
+    i(1),
+    t("}")
+  }),
+
+  -- 수식을 \left( \right) 로 감싸는 스니펫 예시
+  s({ trig = "lrp" }, {
+    t("\\left( "),
+    f(util.get_visual, {}), -- 복사 붙여넣기 대신 util.get_visual 사용
+    i(1),
+    t(" \\right)"),
+  }),
+
+-- ---------------------------------------
+
+
+
+}
+
+
+--{{{
+--[[
+## 1. 특수 심볼 및 화살표 자동 변환 예시
+수식이나 텍스트 문서(Markdown 등)를 작성할 때 유용한 기호들입니다. init.lua에 등록해 두면 아주 편리합니다.
+-- 화살표 및 논리 기호
+vim.keymap.set('ia', '->>', '→')
+vim.keymap.set('ia', '=>>', '⇒')
+vim.keymap.set('ia', '!=', '≠')
+vim.keymap.set('ia', '<=', '≤')
+vim.keymap.set('ia', '>=', '≥')
+
+-- 그리스 문자 (수식 작성용)
+vim.keymap.set('ia', '\\alpha', 'α')
+vim.keymap.set('ia', '\\beta', 'β')
+vim.keymap.set('ia', '\\gamma', 'γ')
+
+-- 간단한 마크다운/수식 템플릿
+vim.keymap.set('ia', '$$', '$$  $$<Left><Left><Left>') -- 입력 후 커서가 수식 안으로 들어감
+
+1. iabbrev를 활용한 그리스 문자 & 심볼 매핑 (가장 빠름)
+
+-- 그리스 문자 (접두사 ; 활용)
+vim.keymap.set('ia', ';a', 'α')
+vim.keymap.set('ia', ';b', 'β')
+vim.keymap.set('ia', ';g', 'γ')
+vim.keymap.set('ia', ';d', 'δ')
+vim.keymap.set('ia', ';t', 'θ')
+vim.keymap.set('ia', ';l', 'λ')
+vim.keymap.set('ia', ';s', 'σ')
+vim.keymap.set('ia', ';o', 'ω')
+
+-- 자주 쓰는 수학 기호 및 연산자
+vim.keymap.set('ia', ';inf', '∞')
+vim.keymap.set('ia', ';times', '×')
+vim.keymap.set('ia', ';div', '÷')
+vim.keymap.set('ia', ';pm', '±')
+vim.keymap.set('ia', ';neq', '≠')
+vim.keymap.set('ia', ';sim', '∼')
+vim.keymap.set('ia', ';approx', '≈')
+
+-- 집합 기호
+vim.keymap.set('ia', ';in', '∈')
+vim.keymap.set('ia', ';notin', '∉')
+vim.keymap.set('ia', ';sub', '⊂')
+vim.keymap.set('ia', ';un', '∪')
+vim.keymap.set('ia', ';inter', '∩')
+
+2. 마크다운 내 LaTeX 문법을 위한 커서 제어 약어
+마크다운에서 LaTeX 수식($...$)을 작성할 때 분수나 첨자 등을 편하게 입력하는 팁입니다. 앞서 설명해 드린 <Left> 키맵을 활용합니다.
+
+-- 인라인 수식 및 블록 수식 자동 완성 후 커서 이동
+vim.keymap.set('ia', '$$', '$$<Left>')
+vim.keymap.set('ia', 'dmv', '$$  $$<Left><Left><Left>') -- Display Math Mode
+
+-- LaTeX 분수 및 상첨자/하첨자 틀 만들기
+vim.keymap.set('ia', ';frac', '\\frac{}{}<Left><Left><Left>') -- 분모/분자 사이로 커서 이동
+vim.keymap.set('ia', ';sq', '\\sqrt{}<Left>')
+vim.keymap.set('ia', ';int', '\\int_{}^{}<Left><Left><Left><Left>') -- 적분 구간 사이로 이동
+
+-- ------------------------------------------------
+-- ------------------------------------------------
+Question:
+-그래서 말인데... 러이텍 플러그인vimtex에서도 많은 수식 단축키를 제공하잖아.. 그 제곳되는 모든 키워드/단추키들을 모두 볼수 잏는 자료가 있으면 알려줘, vimtex의 단축키워드?-
+
+Answer:
+
+중요한 사실을 먼저 말씀드리면, [VimTeX](https://github.com/lervag/vimtex) 플러그인은 자체적으로 수식 입력용 자동완성 키워드나 스니펫(예: ;a를 치면 \alpha로 변환)을 기본 제공하지 않습니다. [1, 2] 
+많은 사용자가 VimTeX이 단축키를 제공한다고 오해하는 이유는, 과거의 유물인 LaTeX-Suite(vim-latex) 플러그인의 기능과 헷갈렸거나, VimTeX 사용자들이 필수적으로 함께 쓰는 스니펫 플러그인(LuaSnip 등) 설정을 VimTeX 자체 기능으로 착각하기 때문입니다. [2] 
+대신 VimTeX은 수식을 편집하고, 이동하고, 삭제하는 강력한 텍스트 오브젝트(Text Objects) 단축키를 제공합니다. VimTeX이 제공하는 핵심 단축키 자료와, 찾으시는 '수식 입력용 상용구 리스트'를 얻을 수 있는 가장 확실한 방법을 정리해 드립니다. [3, 4] 
+------------------------------
+## 1. VimTeX 제공 핵심 단축키 (수식 및 환경 제어)
+수식을 입력할 때 목록 창을 거치지 않고, 이미 작성된 수식 괄호나 환경을 빠르게 조작하는 VimTeX의 내장 단축키들입니다. Neovim에서 :help vimtex-mappings를 입력하면 공식 명세를 전부 볼 수 있습니다. [2, 3] 
+
+| 기능 분류 [1, 2, 3] | 단축키 (Normal 모드) | 설명 |
+|---|---|---|
+| 수식 환경 제어 | tse | 인라인 수식($...$)을 블록 수식($$...$$ 또는 \[...\])으로 토글 (반대도 가능) |
+| | tsd | ( ) 나 [ ] 같은 괄호를 \left( 와 \right) 구조로 토글 |
+| 환경 변경/삭제 | cse | 현재 커서가 위치한 LaTeX 환경(\begin{...})의 이름을 변경 |
+| | dse | 현재 커서의 LaTeX 환경 사방을 삭제 (내용물은 유지) |
+| | dsc | 커서가 위치한 수식 명령어(예: \textbf{...})를 지우고 알맹이만 남김 |
+| 텍스트 오브젝트 | di$ / da$ | 인라인 수식 안쪽(inner) 또는 수식 전체(all) 삭제 |
+| (수식 내부 낚아채기) | diM / daM | 블록 수식 안쪽 또는 블록 수식 전체 삭제 |
+
+------------------------------
+## 2. 수식 입력 키워드(상용구) 모음집을 얻는 방법
+질문하신 "모든 수식 키워드/단축키를 볼 수 있는 자료"는 전 세계 LaTeX 유저들이 공통으로 사용하는 스니펫 라이브러리를 통해 한눈에 확인하고 가져오실 수 있습니다.
+## ① friendly-snippets의 LaTeX/Markdown 수식 목록 (가장 추천)
+현재 사용 중이신 friendly-snippets 플러그인 폴더 안에 모든 수식 상용구 리스트가 JSON 형태로 저장되어 있습니다.
+
+* 웹에서 편하게 보기: friendly-snippets GitHub / snippets / tex / math.json 링크에 접속하시면 alpha, beta부터 frac, matrix, sum까지 모든 수식 트리거 키워드가 일목요연하게 정리되어 있습니다.
+* 이 키워드들을 참고하셔서 마음에 드는 단어들을 앞서 결정하신 iabbrev 형식(예: vim.keymap.set('ia', ';frac', '\\frac{}{}<Left><Left><Left>'))으로 내 설정 파일에 그대로 이식하시면 됩니다 [2]. [5] 
+
+## ② 마크다운 유저들을 위한 수학 스니펫 라이브러리 활용
+최근 Neovim 유저들 사이에서 마크다운/레이텍 수식 입력용으로 찬사를 받는 madol.nvim 또는 [luasnip-latex-snippets.nvim](https://github.com/iurimateus/luasnip-latex-snippets.nvim)의 소스코드를 보시면, 기하학·미적분학·대수학 등 전 분야의 수학 기호 축약어 리스트가 완벽하게 정리되어 있어 좋은 참고 자료가 됩니다. [6] 
+------------------------------
+## 최종 요약
+
+* 수식을 자동 변환해서 입력하는 상용구 ➡️ friendly-snippets의 math.json 목록을 커닝하여 나만의 iabbrev 세팅으로 커스텀 빌드하기!
+* 작성된 수식을 바꾸고, 지우고, 감싸는 기능 ➡️ VimTeX 내장 단축키(tse, cse, dse) 활용하기!
+
+혹시 VimTeX의 단축키 중에서 컴파일 및 PDF 뷰어 연동 관련 단축키(\ll, \lv 등) 리스트도 추가로 필요하신가요? 필요하시다면 이 부분도 깔끔하게 표로 정리해 드리겠습니다! [7, 8] 
+
+[1] [https://github.com](https://github.com/lervag/vimtex/issues/172)
+[2] [https://github.com](https://github.com/lervag/vimtex)
+[3] [https://www.dmsussman.org](https://www.dmsussman.org/resources/vimtex/)
+[4] [https://ejmastnak.com](https://ejmastnak.com/tutorials/vim-latex/ultisnips/)
+[5] [https://www.youtube.com](https://www.youtube.com/watch?v=TMA7nu9KCEQ&t=516)
+[6] [https://www.reddit.com](https://www.reddit.com/r/neovim/comments/1jxdwub/madolnvim_latex_snippets_for_typesetting_math/)
+[7] [https://gist.github.com](https://gist.github.com/CaesarOG/0b9e9c778675537f4ae2c96b03be1de8)
+[8] [https://abrochier.org](https://abrochier.org/wiki/vimtex-cheat-sheet/)
+
+
+
+--]]
+--}}}
+
+
+
+
+-- vim: set foldmethod=marker foldmarker={{{,}}} foldlevel=0 :
+

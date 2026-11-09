@@ -1,0 +1,182 @@
+%
+% memoir 클래스를 기반으로 수식, 표, 그림 구조, 알고리즘, 소스 코드까지 모두 포함된 종합 기본 템플릿 문서
+%
+% 템플릿 구성 안내
+%
+% 수식(Mathematics): amsmath 계열 패키지를 가정한 여러 줄 수식(align), 대형 행렬, 조건부 수식 등의 구조가 예시와 함께 작성되어 있습니다.
+%
+% 표(Table) & 그림(Figure): 학술 논문 스타일의 깔끔한 가로선 구조(Booktabs 스타일) 표와 그림 삽입을 위한 기본 코드가 포함되어 있습니다.
+%
+% 알고리즘 & 코드: 의사코드(Pseudocode) 작성을 위한 algorithm2e 스타일 구조와 소스 코드 하이라이팅을 위한 listings 패키지 설정 및 예시 코드가 구현되어 있습니다.
+%
+
+
+\documentclass[11pt,a4paper,oneside]{memoir}
+
+% --- 필수 및 권장 패키지 설정 ---
+\usepackage{kotex}          % 한국어 지원
+\usepackage{amsmath}        % 복잡한 수식용 필수 패키지
+\usepackage{amssymb}        % 다양한 수학 기호
+\usepackage{amsfonts}       % 수학 글꼴
+\usepackage{booktabs}       % 깔끔한 학술 논문용 표(Toprule, Midrule, Bottomrule)
+\usepackage{graphicx}       % 그림 삽입용
+\usepackage{listings}       % 소스 코드 삽입용
+\usepackage{xcolor}         % 코드 하이라이팅을 위한 색상
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e} % 알고리즘(의사코드)용
+
+% --- memoir 클래스 레이아웃 및 스타일 설정 ---
+\setlrmarginsandblock{3cm}{3cm}{*} % 좌우 여백
+\setulmarginsandblock{3cm}{3cm}{*} % 상하 여백
+\checkandfixthelayout
+
+% 장(Chapter) 스타일을 깔끔하게 변경
+\chapterstyle{section}
+
+% --- 소스 코드 스타일 설정 (listings) ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+% --- 문서 정보 ---
+\title{\texttt{memoir} 클래스 기반 종합 템플릿 문서}
+\author{신태철}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\chapter{서론 및 고급 수학 수식}
+
+\section{여러 줄로 구성된 복잡한 수식}
+\texttt{amsmath} 패키지의 \texttt{align} 환경을 사용하면 등호(\texttt{=})의 위치를 맞춰 여러 줄 수식을 깔끔하게 정렬할 수 있습니다. 다음은 오차 역전파 및 최적화 과정에서 자주 등장하는 수식 예시입니다.
+
+\begin{align}
+    J(\theta) &= \frac{1}{2m} \sum_{i=1}^{m} \left( h_\theta(x^{(i)}) - y^{(i)} \right)^2 + \frac{\lambda}{2m} \sum_{j=1}^{n} \theta_j^2 \\
+    \frac{\partial J(\theta)}{\partial \theta_j} &= \left( \frac{1}{m} \sum_{i=1}^{m} \left( h_\theta(x^{(i)}) - y^{(i)} \right) x_j^{(i)} \right) + \frac{\lambda}{m} \theta_j \quad \text{for } j \ge 1
+\end{align}
+
+또한, 조건에 따라 분기되는 수식은 \texttt{cases} 환경을 사용합니다.
+\begin{equation}
+    f(x) = \begin{cases}
+        \int_{-\infty}^{x} e^{-t^2} dt & \text{if } x < 0 \\
+        \sum_{k=0}^{\infty} \frac{x^k}{k!} & \text{if } x \ge 0
+    \end{cases}
+\end{equation}
+
+\section{대형 행렬 및 벡터 수식}
+디지털 신호 처리(DSP) 및 통신 공학에서 자주 쓰이는 행렬 연산 예시입니다.
+\begin{equation}
+    \mathbf{Y} = \mathbf{H}\mathbf{X} + \mathbf{N}
+\end{equation}
+이를 전개하면 다음과 같은 블록 행렬 형태로 나타낼 수 있습니다.
+\begin{equation}
+    \begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_R \end{bmatrix} = 
+    \begin{bmatrix}
+        h_{11} & h_{12} & \cdots & h_{1T} \\
+        h_{21} & h_{22} & \cdots & h_{2T} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        h_{R1} & h_{R2} & \cdots & h_{RT}
+    \end{bmatrix}
+    \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_T \end{bmatrix} +
+    \begin{bmatrix} n_1 \\ n_2 \\ \vdots \\ n_R \end{bmatrix}
+\end{equation}
+
+
+\chapter{데이터 표현 및 알고리즘}
+
+\section{학술 논문 스타일의 표 (Table)}
+\texttt{booktabs} 패키지를 사용하면 세로선이 없고 가로선의 굵기를 조절하여 정돈된 표를 만들 수 있습니다.
+
+\begin{table}[htbp]
+\centering
+\caption{시스템 환경에 따른 성능 비교 분석}
+\label{tab:performance}
+\begin{tabular}{lccc}
+    \toprule
+    \textbf{알고리즘 모델} & \textbf{정확도 (\%)} & \textbf{연산 속도 (ms)} & \textbf{메모리 사용량} \\
+    \midrule
+    Baseline Model       & 84.2  & 12.5 & 45 MB \\
+    Proposed Method (A)  & 91.8  & 18.2 & 62 MB \\
+    Proposed Method (B)  & 95.4  & 34.1 & 110 MB \\
+    \bottomrule
+\end{tabular}
+\end{table}
+
+\section{그림 (Figure) 구조}
+그림을 삽입할 때는 아래와 같은 기본 구조를 사용합니다. (\texttt{example-image}는 테스트용 기본 이미지 이름입니다.)
+
+\begin{figure}[htbp]
+\centering
+%\includegraphics[width=0.6\textwidth]{example-image} % 실제 파일명으로 대체 가능
+\framebox[0.6\textwidth]{\vbox to 3cm{\vfill\hbox to \hsize{\hss 그림 위치 (Image Placeholder)\hss}\vfill}}
+\caption{제안하는 신호 처리 시스템의 블록 다이어그램}
+\label{fig:diagram}
+\end{figure}
+
+\section{알고리즘 (의사코드)}
+\texttt{algorithm2e} 패키지를 이용하면 복잡한 로직을 세련된 형태로 문서화할 수 있습니다.
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetAlgoLined
+\KwIn{입력 신호 벡터 $\mathbf{X}$, 채널 행렬 $\mathbf{H}$, 임계값 $\tau$}
+\KwOut{검출된 신호 벡터 $\hat{\mathbf{X}}$}
+\BlankLine
+초기화: $\mathbf{r} = \mathbf{X}$, $i = 0$\;
+\While{$\|\mathbf{r}\| > \tau$ \textbf{and} $i < \text{MaxIteration}$}{
+    각 채널 경로에 대한 가중치 계산: $w_i = \mathbf{H}^H \mathbf{r}$\;
+    가장 강한 성분 선택 및 신호 추정\;
+    잔차 업데이트: $\mathbf{r} = \mathbf{r} - \mathbf{H}\hat{x}_i$\;
+    $i = i + 1$\;
+}
+\Return{$\hat{\mathbf{X}}$}\;
+\caption{최소 잔차 기반 신호 검출 알고리즘}
+\label{alg:detection}
+\end{algorithm}
+
+
+\chapter{소스 코드 구현}
+
+\section{소스 코드 하이라이팅 (\texttt{listings})}
+아래는 \texttt{listings} 패키지를 사용하여 작성된 C++ 및 Python 예시 코드 블록입니다.
+
+\begin{lstlisting}[language=Python, caption={Python을 이용한 행렬 곱 계산 및 수식 검증}]
+import numpy as np
+
+def verify_signal_detection(H, X, N):
+    # Y = HX + N 연산 수행
+    Y = np.dot(H, X) + N
+    print(f"Generated Signal Shape: {Y.shape}")
+    return Y
+
+# 테스트 데이터 생성
+H = np.random.randn(4, 4)
+X = np.random.randn(4, 1)
+N = np.random.randn(4, 1)
+Y = verify_signal_detection(H, X, N)
+\end{lstlisting}
+
+\end{document}

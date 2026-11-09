@@ -1,0 +1,229 @@
+-- Snippet Engine & LaTeX Extensions
+
+return {
+  'L3MON4D3/LuaSnip',
+  -- -----------------------------------------------------------------
+  -- [수정된 부분] 로딩 이벤트 변경
+  -- 왜 수정되었는가: 
+  -- 기존 'InsertEnter'(입력모드 진입 시 로드)는 켜지는 속도는 빠르나, 
+  -- 문서를 열자마자 수식 환경($...$)을 탐색해야 하는 Tree-sitter 구문 분석 메커니즘과 
+  -- 타이밍이 어긋나 자동 트리거가 무시되는 현상이 있습니다. 
+  -- 안전하게 파일 버퍼를 읽는 시점('BufReadPost', 'BufNewFile')으로 전환합니다.
+  -- -----------------------------------------------------------------
+  -- event = 'InsertEnter', -- 입력 모드로 진입할 때 지연 로딩하여 Neovim 켜지는 속도를 최적화합니다.
+  event = { 'BufReadPost', 'BufNewFile' },
+  version = '2.*',
+  build = (function()
+    -- Build Step is needed for regex support in snippets.
+    -- This step is not supported in many windows environments.
+    -- Remove the below condition to re-enable on windows.
+    if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then return end
+    return 'make install_jsregexp'
+  end)(),
+
+  dependencies = {
+    {
+      -- `friendly-snippets` contains a variety of premade snippets.
+      --    See the README about individual language/framework/plugin snippets:
+      --    https://github.com/rafamadriz/friendly-snippets
+
+      -- 스니펫 컬렉션
+      'rafamadriz/friendly-snippets',
+      config = function()
+        -- -----------------------------------------------------------------
+        -- snippet 로드 : friendly-snippets 제공 snippets
+        -- friendly-snippets가 제공하는 VS Code 양식의 스니펫들을 LuaSnip으로 로드.
+        -- cf) lazy_load: 인자(괄호 안의 내용) 유무에 따라 전혀 다른 대상을 가져오는 서로 독립된 명령어입니다.
+        -- -----------------------------------------------------------------
+        require('luasnip.loaders.from_vscode').lazy_load()
+
+        -- -----------------------------------------------------------------
+        -- snippet 로드 : custom JSON snippets 
+        -- 커스텀 JSON 스니펫들을 로드
+        -- 나만의 커스텀 JSON 스니펫 폴더 위치를 LuaSnip에 알려주기
+        -- vim.fn.stdpath('config') 구문이 자동으로 AppData\Local\nvim 경로를 찾아주기 때문에, 그 뒤에 /snippets 폴더를 연결해 준 것입니다.
+        -- -----------------------------------------------------------------
+        local snippet_path = vim.fn.stdpath('config') .. '/snippets'
+
+        require('luasnip.loaders.from_vscode').lazy_load({
+          paths = { snippet_path }
+        })
+
+        -- -----------------------------------------------------------------
+        -- snippet 로드 : lua snippets
+        -- 루아 스니펫(*.lua) 폴더 로드
+        -- -----------------------------------------------------------------
+        require("luasnip.loaders.from_lua").lazy_load({
+          paths = { snippet_path }
+        })
+      end,
+    },
+
+    -- ---------------------------------------
+    -- summer_willow, 2026-06-28 11:40:56
+    --
+    -- [핵심] Gilles Castel 스타일의 초고속 LaTeX 자동 트리거 플러그인
+    -- [위치 이동 주석] blink 내부 깊숙한 곳에서 오직 LuaSnip에 종속된 이곳으로 정상 이전 완료.
+
+    --[[
+    {
+      "iurimateus/luasnip-latex-snippets.nvim",
+
+      -- tex 파일이 열릴 때만 로드 (성능 최적화)
+      ft = { "tex", "markdown" },
+
+      -- Neovim이 수식 모드를 정확히 감지(Tree-sitter 기반)할 수 있도록 로드 시점 설정
+      config = function()
+        require("luasnip-latex-snippets").setup({
+          -- 오직 수식 모드($, $$ 안)에서만 작동하도록 보장
+          use_treesitter = true, -- 오직 LaTeX 수식($...$) 내부에서만 작동하도록 구문분석기 활성화
+        })
+        -- LuaSnip에게 "자동 트리거(Autotrigger) 기능을 전역으로 켜라"고 명령합니다.
+        require("luasnip").config.setup({ enable_autosnippets = true })
+      end,
+    },
+    --]]
+    --
+    -- -----------------------------------------------------------------
+    -- [수정된 부분] iurimateus/luasnip-latex-snippets.nvim 설정 경량화
+    -- 왜 수정되었는가: 
+    -- 플러그인을 독립 선언하되, 내부에 있던 config 함수를 제거했습니다. 
+    -- 여기서 직접 `luasnip.config.setup`을 호출하면 아래 최상위 `config` 함수가 
+    -- 실행될 때 설정이 리셋되는 치명적인 버그가 발생합니다. 
+    -- 따라서 여기서는 의존성 등록만 하고, 진짜 초기화 명령은 맨 아래 최상위 config로 이동시킵니다.
+    -- -----------------------------------------------------------------
+    {
+      "iurimateus/luasnip-latex-snippets.nvim",
+      -- ft 지연 로딩을 제거하여 부모인 LuaSnip이 켜질 때 세트로 항상 완벽하게 로드되도록 일체화합니다.
+
+      -- 🌟 닷파일 유저들의 핵심 트릭: lazy 로딩을 false 처리하거나 
+      -- 레이텍 전용 확장자(ft = "tex")로 명시해 순서를 강제합니다.
+      ft = { "tex", "markdown" },
+      config = function()
+        -- 레이텍 소스 엔진 초기화
+        require("luasnip-latex-snippets").setup({
+          use_treesitter = true
+        })
+
+
+        -- 🌟 실제 유저 검증 핵심 가이드라인 코드:
+        -- 외부 스니펫 라이브러리를 로드한 직후, LuaSnip 엔진에 새로 고침을 날려줍니다.
+        require("luasnip").config.setup({})
+      end,
+    },
+    -- -----------------------------------------------------------------
+    -- summer_willow, 2026-06-28 11:40:56, end
+    -- ---------------------------------------
+  },
+
+  -- ----------------------------------------------------
+  -- by stc
+  opts = {
+    -- ----------------------------------------------------
+    -- LuaSnip 의 자동 스니펫 기능 활성화 
+    -- ----------------------------------------------------
+    -- LuaSnip이 로드될 때 이 옵션이 가장 먼저 주입됩니다.
+    enable_autosnippets = true, -- 자동스니펫 (전역) 활성화
+    -- lazy.nvim 환경에서 LuaSnip은 opts = { ... } 형태로 옵션을 넘겨주면 내부적으로 setup(opts)을 호출하면서 config.set_config를 자동으로 처리해 준다
+    -- 따라서, snippet 로더가 (ex, require("luasnip.loaders.from_lua").lazy_load()) 실행되기 전에, 전역 자동 스니펫 옵션을 (enable_autosnippets = true) 활성화합니다.
+    -- ----------------------------------------------------
+
+    update_events = "TextChanged,TextChangedI", -- 글자를 타이핑할 때마다 즉시 파싱
+  },
+  -- by stc, end
+  -- ----------------------------------------------------
+
+  --[[
+  -- ----------------------------------------------------
+  -- by stc
+  --
+  -- -----------------------------------------------------------------
+  -- [STC 추가 / 구조 고정] LuaSnip 자체의 초기화 가동 단계에서 파일타입 확장을 실행합니다.
+  -- [새로 삽입된 교통정리 주석] 
+  -- 과거 blink 파일 하단에서 오작동을 유도했던 config 차단 버그를 뚫어내고, 
+  -- 이제 순수한 전용 LuaSnip 플러그인의 공식 초기화 함수로 복귀시켰습니다.
+  -- -----------------------------------------------------------------
+  config = function(_, opts)
+    require("luasnip").setup(opts)
+
+    -- -----------------------------------------------------------------
+    -- 적용될 snippets 확장
+    -- -----------------------------------------------------------------
+    --`requre("luasnip").filetype_extend(ft, extend_fts)
+    -- ft: 현재 편집하고 있는 파일타입
+    -- extend_fts: 가져올 파일타입 목록
+    -- cf) lazy.nvim에서 opts 테이블은 단순히 값을 전달하는 곳이기 때문에, 함수 형태의 명령어인 filetype_extend는 opts에 놓으면 안된다. config 함수를 따로 만들어서 그 안에 배치하는 것이 Neovim 설정의 정석입니다.
+    --
+    -- 마크다운 파일에서 tex(LaTeX) 스니펫을 공유하도록 강제 연결
+    require("luasnip").filetype_extend("markdown", { "tex" })
+
+      -- 만약 나중에 다른 언어 결합이 필요하다면 이 아래에 똑같이 한 줄씩 추가하면 됩니다.
+      -- require("luasnip").filetype_extend("python", { "matlab" })
+  end,
+  -- by stc, end
+  -- ----------------------------------------------------
+  --]]
+
+  --[[
+  -
+  -- by stc
+  -- original
+  -- -----------------------------------------------------------------
+  -- [새로 삽입된 부분] 최상위 config 함수의 실행 순서 및 버그 패치 통제
+  -- 왜 이 부분이 새로 삽입/조정되었는가:
+  -- LuaSnip의 순정 setup(opts)이 완벽하게 끝난 "직후" 안전한 타이밍에 
+  -- LaTeX 스니펫 팩의 .setup()과 전역 자동 트리거(enable_autosnippets) 명령을 
+  -- "순차적으로" 실행하도록 배치 구조를 완전히 새로 짰습니다. 
+  -- 이렇게 하면 대등한 위치에서 서로 덮어쓰며 설정을 폭파하던 경쟁 상태 버그가 완벽히 소멸합니다.
+  -- -----------------------------------------------------------------
+  config = function(_, opts)
+    -- 1. 순정 LuaSnip을 유저 옵션(opts) 기반으로 먼저 단단하게 빌드합니다.
+    require("luasnip").setup(opts)
+
+    -- 2. LuaSnip이 완전히 가동되었으므로, 그 위에 안전하게 LaTeX 자동완성 팩을 안착시킵니다.
+    require("luasnip-latex-snippets").setup({
+      use_treesitter = true, -- 오직 LaTeX 수식($...$) 내부에서만 작동하도록 구문분석기 활성화
+    })
+
+    -- 3. 두 플러그인이 결합된 상태에서 최종적으로 자동 트리거 엔진을 전역 가동합니다.
+    require("luasnip").config.setup({ enable_autosnippets = true })
+
+    -- 4. 마크다운 파일에서 tex(LaTeX) 스니펫을 공유하도록 강제 연결
+    require("luasnip").filetype_extend("markdown", { "tex" })
+  end,
+  -- by stc, end
+  -- ----------------------------------------------------
+  --]]
+
+  -- ----------------------------------------------------
+  -- by stc
+  -- 1st sol.
+  -- -----------------------------------------------------------------
+  -- [교정 완료] 최상위 config 함수의 실행 순서 및 초기화 버그 최종 해결
+  -- -----------------------------------------------------------------
+  config = function(_, opts)
+    -- 1. 순정 LuaSnip을 유저 옵션(opts) 기반으로 먼저 단단하게 빌드합니다.
+    local luasnip = require("luasnip")
+    luasnip.setup(opts)
+
+    -- 2. [핵심 패치] LaTeX 자동완성 팩을 단독 setup하는 대신, 
+    --    자체 제공하는 로더 함수를 명시적으로 호출하여 LuaSnip에 확실하게 주입합니다.
+    --    (use_treesitter 옵션은 \section 같은 본문용 스니펫의 작동을 막으므로 제거합니다)
+    require("luasnip-latex-snippets").setup()
+
+    -- 3. 마크다운 파일에서 tex(LaTeX) 스니펫을 공유하도록 강제 연결
+    luasnip.filetype_extend("markdown", { "tex" })
+    luasnip.filetype_extend("tex", { "tex" }) -- tex 자체 확장 보장
+
+    -- 4. [중요] 모든 플러그인과 로더 셋업이 완전히 끝난 "최종 시점"에 
+    --    자동 트리거 엔진을 전역 가동하여 스니펫들을 활성화합니다.
+    luasnip.config.setup({ enable_autosnippets = true })
+  end,
+  -- by stc, end
+  -- ----------------------------------------------------
+
+
+
+
+}
+

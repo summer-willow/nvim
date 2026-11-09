@@ -1,0 +1,72 @@
+% -- ---------------------------------------------------yy
+% memoir: 책, 논문, 보고서 등 긴 문서를 정교하게 조판하기 위해 report와 book 클래스를 확장한 다기능 latex 문서 클래스
+% 한글 보고서나 학위 논문을 본격적으로 작성하실 때는 report보다 memoir 클래스를 쓰시는 것이 훨씬 더 좋은 선택
+% memoir 클래스는 기존 report나 book 클래스의 기능을 모두 아우르면서, 책이나 보고서 조판에 필요한 유용한 패키지 기능들을 자체적으로 내장하고 있습니다. 덕분에 디자인 커스터마이징이 훨씬 자유롭고 안정적입니다.
+% 다만, report에서 memoir로 클래스를 바꿀 때 충돌을 막기 위해 템플릿 코드를 살짝 다듬어줄 필요가 있습니다. memoir 클래스 자체에 이미 geometry나 hyperref 패키지의 일부 기능이 들어있거나, 한글 kotex 패키지와 불러오는 순서에 따라 경고가 날 수 있기 때문입니다.
+% -- ---------------------------------------------------yy
+
+% !TEX program = xelatex
+
+\documentclass[12pt, a4paper, oneside]{memoir}
+
+
+
+% 0. 불필요한 경고 필터링 (Neovim 빌드 로그 최적화)
+\usepackage{silence}
+\WarningFilter{microtype}{Unknown slot number} % microtype의 수많은 슬롯 경고 숨기기
+\SystemWarningFilter{latex}{Font shape} % 라텍스 시스템 코어가 뿜는 Font shape 경고 차단
+% \WarningFilter{latex}{Font shape}              % 한글 이탤릭체 미지원으로 인한 대체 경고 숨기기
+
+
+
+
+% 1. 한글 및 폰트 설정 (XeLaTeX 전용 옵션)
+% 'hangul'은 장/절을 한글로 바꾸고, 'xe' 옵션은 XeLaTeX 엔진의 폰트 매핑을 활성화합니다.
+\usepackage[hangul]{kotex} 
+
+% 원하셨던 영문 로만(Roman)체 에러 방지 및 기본 서체 지정을 위해 
+% XeLaTeX에서는 다음과 같이 설정합니다 (시스템에 기본 포함된 Latin Modern 활용)
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+
+% 2. 수식 및 수학 기호 패키지
+\usepackage{amsmath}           
+\usepackage{amssymb}           
+\usepackage{amsfonts}          
+\usepackage{bm}                
+
+% 3. 여백 및 가독성 설정
+\usepackage[margin=1in]{geometry} 
+\usepackage{microtype}         % XeLaTeX에서도 정상 작동하며, 폰트 경고가 사라집니다.
+
+% 4. 하이퍼링크 설정
+\usepackage{hyperref}          
+
+\title{XeLaTeX 기반 memoir 한글 보고서 템플릿}
+\author{작성자 이름}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\chapter{서론}
+aaa
+bbb
+ccc
+ddd
+\section{연구 배경}
+질문하신 대로 매직 커멘트(\texttt{\% !TEX program = xelatex}) 위에 일반 설명 주석이 있어도 에디터는 정상적으로 엔진을 인지합니다. 
+
+현재 이 문서는 \texttt{XeLaTeX} 엔진을 통해 컴파일되고 있으며, \texttt{fontspec} 구조를 거쳐 영문은 고전적이면서 미려한 \textit{Latin Modern Roman}으로, 한글은 시스템 기본 명조/고딕 계열로 깨짐 없이 깔끔하게 조판됩니다. 이전에 발생하던 \texttt{microtype} 관련 폰트 패치 경고도 말끔히 해결됩니다.
+
+\section{수식 예시}
+인라인 수식 $E = mc^2$ 및 블록 수식 모두 완벽하게 지원합니다.
+\begin{equation}
+    f(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{(x-\mu)^2}{2\sigma^2} \right)
+\end{equation}
+
+\end{document}

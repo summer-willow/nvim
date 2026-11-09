@@ -1,0 +1,368 @@
+
+-- [[ Basic Autocommands ]]
+--  See `:help lua-guide-autocommands`
+
+
+-- --------------------------------------------
+-- Highlight when yanking (copying) text
+-- --------------------------------------------
+--  Try it with `yap` in normal mode
+--  See `:help vim.hl.on_yank()`
+vim.api.nvim_create_autocmd('TextYankPost', {
+  desc = 'Highlight when yanking (copying) text',
+  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+  callback = function() vim.hl.on_yank() end,
+})
+-- ==> augroup() naming 처리
+
+-- --------------------------------------------
+--  nvim_create_augroup() 설명
+-- by stc
+-- --------------------------------------------
+
+-- {{{ nvim_create_augroup() 설명
+-- ------------------------
+-- nvim_creat_augroup() 사용
+-- - nvim_create_autocmd()의  중복 실행 방지
+-- - 여러 개의 autocmd 그룹화: 체계적인 관리
+-- - 디버깅과 유지보수 편리성
+-- - ex) vim.api.nvim_create_augroup( "GroupName", {clera = true})
+-- - --> GroupName으로 그룹화 된 모든 autocmd를 지우고(초기화), 새로
+-- 	GroupName이라는 다시 만듬.
+-- * 일반적인 패턴:
+-- 그룹 생성 → local g = vim.api.nvim_create_augroup("GroupName", { clear = true })
+-- 그룹에 autocmd 등록 → vim.api.nvim_create_autocmd(..., { group = g, ... })
+--
+-- 💡 요약
+-- clear = true 옵션을 가진 augroup을 만든다.
+-- autocmd를 만들 때 group 항목에 해당 그룹 이름을 적어준다.
+-- ==> 이렇게 하면 설정 파일을 아무리 수정하고 다시 불러와도 Neovim은 늘 **최적의 상태(명령당 1회 실행)**를 유지한다.
+-- ---------------------------------
+-- }}}
+-- ---------------------------------
+-- {{{ 📌 예시 코드
+-- 📌 예시 코드
+-- lua
+-- -- 그룹 생성
+-- local myGroup = vim.api.nvim_create_augroup("MyAutoCmdGroup", { clear = true })
+--
+-- -- 그룹에 속한 autocmd 등록
+-- vim.api.nvim_create_autocmd("BufWritePre", {
+--   group = myGroup,
+--   pattern = "*",
+--   callback = function()
+--     -- 저장 전에 자동으로 공백 제거
+--     vim.cmd([[%s/\s\+$//e]])
+--   end,
+-- })
+-- 설명
+-- nvim_create_augroup("MyAutoCmdGroup", { clear = true })
+-- → "MyAutoCmdGroup"이라는 그룹을 만들고, 기존에 있던 같은 이름의 그룹은 지움.
+--
+-- group = myGroup
+-- → 이 autocmd는 해당 그룹에 속함.
+-- }}}
+-- ---------------------------------
+-- {{{ 📌 예시
+-- 📌 예시
+-- lua
+-- -- 그룹 생성 (기존 그룹 내용은 모두 지움)
+-- local myGroup = vim.api.nvim_create_augroup("MyAutoCmdGroup", { clear = true })
+--
+-- -- 그룹에 autocmd 등록
+-- vim.api.nvim_create_autocmd("BufWritePre", {
+--   group = myGroup,
+--   pattern = "*.lua",
+--   callback = function()
+--     vim.cmd([[%s/\s\+$//e]])  -- 저장 전에 불필요한 공백 제거
+--   end,
+-- })
+--
+-- }}}
+-- ---------------------------------
+
+-- augroup 함수 헬퍼
+local function augroup(name)
+  return vim.api.nvim_create_augroup('MyGroup_' .. name, { clear = true })
+end
+
+-- {{{ nvim_create_augroup() 예시
+-- ---------------------------------
+-- group 생성
+-- local edit_group = augroup 'editing' -- 문서 편집 관련
+-- local ui_group = augroup("ui_management")	-- UI 및 창 관련
+-- local file_type_group = augroup("file_specific")	-- filetype 관련
+
+-- -- ==========================================
+-- -- 그룹 1: [문서 편집 편의] 관련 상자
+-- -- ==========================================
+-- local edit_group = augroup("editing")
+--
+-- -- 예시 A: 복사(Yank)할 때 복사된 영역을 잠깐 반짝이게 함
+-- vim.api.nvim_create_autocmd("TextYankPost", {
+--   group = edit_group,
+--   callback = function() vim.highlight.on_yank() end,
+-- })
+-- ==> 이미 kickstart에서 autocmd()로 등록되어 있음
+-- ==> 잔지 augroup()의 naming만 다름.
+--
+-- -- 예시 B: 파일을 저장할 때 끝에 있는 불필요한 공백을 자동으로 삭제
+-- vim.api.nvim_create_autocmd("BufWritePre", {
+--   group = edit_group,
+--   command = [[%s/\s\+$//e]],
+-- })
+--
+-- -- ==========================================
+-- -- 그룹 2: [UI 및 창 관리] 관련 상자
+-- -- ==========================================
+-- local ui_group = augroup("ui_management")
+--
+-- -- 예시 C: 터미널 창에서는 줄 번호(Line Number)를 보이지 않게 설정
+-- vim.api.nvim_create_autocmd("TermOpen", {
+--   group = ui_group,
+--   callback = function()
+--     vim.opt_local.number = false
+--     vim.opt_local.relativenumber = false
+--   end,
+-- })
+--
+-- -- 예시 D: Neovim 창 크기가 조절되면 열려있는 창들의 비율을 자동으로 맞춤
+-- vim.api.nvim_create_autocmd("VimResized", {
+--   group = ui_group,
+--   command = "tabdo wincmd =",
+-- })
+--
+-- -- ==========================================
+-- -- 그룹 3: [특정 파일 전용] 관련 상자
+-- -- ==========================================
+-- local file_type_group = augroup("file_specific")
+--
+-- -- 예시 E: 마크다운(.md) 파일에서만 자동 줄바꿈(wrap)을 활성화
+-- vim.api.nvim_create_autocmd("FileType", {
+--   group = file_type_group,
+--   pattern = "markdown",
+--   callback = function()
+--     vim.opt_local.wrap = true
+--   end,
+-- })
+-- ---------------------------------
+--
+-- }}}
+-- ---------------------------------
+-- {{{ :autocmd 명령
+-- ----------------------------
+-- :autocmd EventName : 'EventName'으로 자동실행되는 모든 autocmd 들을
+-- 보여준다
+-- ex) :autocmd BufReadPost
+-- :autocmd GroupName : group=GroupName에 속한 모든 autocmd 명령들이 나열
+-- ex) :autocmd MyGroup_editing
+-- ---------------------------------
+-- }}}
+-- ---------------------------------
+-- ------------------------
+-- group 생성
+local edit_group = augroup 'editing' -- 문서 편집 관련
+
+-- --------------------------------------------
+-- 파일을 열었을 때 마지막 편집 위치로 커서 이동
+-- --------------------------------------------
+vim.api.nvim_create_autocmd('BufReadPost', {
+  group = edit_group, -- group 지정
+  desc = 'Go to last edit location', -- (마지막 편집 위치로 이동)
+  callback = function()
+    local mark = vim.api.nvim_buf_get_mark(0, '"')
+    local lcount = vim.api.nvim_buf_line_count(0)
+    if mark[1] > 0 and mark[1] <= lcount then
+      pcall(vim.api.nvim_win_set_cursor, 0, mark)
+    end
+  end,
+})
+-- {{{ 설명
+-- 1. vim.api.nvim_create_autocmd('BufReadPost', ...)
+-- nvim_create_autocmd: 특정 사건(이벤트)이 발생했을 때 자동으로 실행될 동작을 정의
+-- 'BufReadPost': 파일을 읽고 난 직후(Post Read Buffer)를 의미하는 이벤트 이름, 즉, 파일을 여는 작업이 끝난 바로 그 순간에 이 코드를 실행하라는 뜻
+--
+-- group = edit_group : 그룹 지정, :autocmd 또는 nvim_create_augroup()에서
+--
+-- desc = ' ... ' : description
+--
+-- 2. callback = function() ... end
+-- callback: 이벤트가 발생했을 때 실행할 실제 함수(동작)를 연결
+-- function() ... end: 익명 함수로, 이 안에 들어있는 코드들이 순차적으로 실행
+--
+-- 3. local mark = vim.api.nvim_buf_get_mark(0, '"')
+-- "마지막으로 있었던 위치 정보"를 가져오는 핵심 라인입니다.
+-- nvim_buf_get_mark(): 특정 버퍼의 마크(Mark) 위치를 가져오는 함수
+-- 0: 현재 활성화된 버퍼(파일)를 의미하는 관습적인 숫자
+-- '"' (따옴표 마크): "(쌍따옴표) 마크는 "이 파일을 마지막으로 닫을 때 커서가 있던 위치"를 자동으로 저장하는 vim의 (미리 약속된) 특수 마크
+-- 결과: mark 변수에는 {행(line), 열(col)} 형태의 좌표 값이 저장됨
+-- mark[1]: 가져온 마크의 행(Line) 번호
+-- mark[2]: 가져온 마크의 column 번호
+-- (Lua에서 리스트의 첫 번째 요소는 1번 인덱스입니다.)
+--
+-- 4. local lcount = vim.api.nvim_buf_line_count(0)
+-- nvim_buf_line_count(0): 현재 파일의 전체 줄 수를 가져옴
+-- --> 파일 내용이 이전에 열었을 때보다 줄어들었을 경우를 대비해 확인하는 용도
+--
+-- 5. if mark[1] > 0 and mark[1] <= lcount then
+-- 가져온 좌표 정보가 유효한지 검사하는 '안전장치'입니다.
+-- mark[1]: 가져온 마크의 행(Line) 번호
+-- mark[1] > 0: 기록된 위치가 최소한 1행 이상인지 확인
+-- mark[1] <= lcount: 기록된 위치가 현재 파일의 전체 줄 수보다 작거나 같은지 확인
+--
+-- 6. pcall(vim.api.nvim_win_set_cursor, 0, mark)
+-- 실제로 커서를 이동시키는 부분
+-- pcall(함수, 인자1, 인자2): Protected Call의 약자로, 함수를 실행하다가 에러가 발생해도 Neovim 전체가 멈추거나 빨간 에러 메시지를 띄우지 않고 조용히 넘어가게 해줍니다. (매우 안전한 코딩 방식입니다.)
+-- nvim_win_set_cursor: 윈도우의 커서 위치를 강제로 설정하는 함수
+-- 0: 현재 윈도우를 의미
+-- mark: 위에서 가져온 {행, 열} 좌표
+-- ---------------------------------
+-- }}}
+-- --------------------------------------------
+-- {{{ cf) 2. 플러그인 사용 (더 스마트한 관리)
+-- cf)
+-- 2. 플러그인 사용 (더 스마트한 관리)
+--
+-- 질문하신 auto-session이나 다른 전문 플러그인을 사용하면 커서 위치뿐만 아니라 열려있던 창 분할(Splits), 탭, 프로젝트 단위 세션까지 통째로 복구할 수 있습니다.
+--
+-- 추천 2: auto-session (세션 전체 복구)
+-- Neovim을 껐다 켰을 때 마지막에 작업하던 그 상태 그대로(모든 파일과 창 구조) 돌아가고 싶다면 이 플러그인이 정답입니다.
+-- 설치: rmagatti/auto-session
+-- 유용성: 프로젝트별로 세션을 자동 저장/불러오기 하므로, 여러 프로젝트를 오가는 개발자에게 매우 유용합니다.
+--
+-- 추천 3: persistence.nvim (Folke 제작, 가벼운 세션 관리)
+-- 유명한 개발자 Folke가 만든 플러그인으로, 필요할 때만 세션을 불러오는 방식이라 매우 가볍고 직관적입니다.
+-- 설치: folke/persistence.nvim
+--
+-- 💡 요약 및 추천
+-- "나는 세션 관리까지는 필요 없고, 그냥 파일 열 때 커서만 제자리에 있으면 좋겠다" 👉 1번 설정 코드를 사용하세요.
+--
+-- "나는 아예 nvim을 켰을 때 어제 작업하던 창 구성(layout)까지 그대로 보고 싶다" 👉 auto-session 또는 **persistence.nvim**을 사용하세요.
+-- }}}
+-- --------------------------------------------
+-- --------------------------------------------
+-- {{{ 개인 워크플로우 관리차원에서의 augroup/autocmd 그룹 활용
+--
+-- Question:
+--
+-- eovim 설정을 주로 개인 워크플로우 관리용으로 쓰고있어. 이에 따라 augroup/autocmd 그룹을 어떻게 나누면 좋을지 gemini가 구체적인 패턴을 제안해줘. 자세한 설명과 함께...
+--
+-- Answer:
+--
+--
+-- Neovim을 개인 워크플로우 관리(Productivity/PKM) 중심으로 사용하신다면, 설정을 단순히 '언어별'로 나누기보다 **'행동(Context)'과 '목적(Intent)'**에 따라 그룹화하는 것이 훨씬 효율적입니다.
+--
+-- augroup을 사용하는 이유는 자동 명령(autocmd)이 중복 등록되어 성능이 저하되는 것을 방지하기 위함입니다. 워크플로우 최적화를 위한 4가지 핵심 패턴을 제안해 드립니다.
+--
+-- 1. UI & Personal Context (집중 모드 설정)
+--
+-- 개인 워크플로우에서 가장 중요한 것은 작업의 맥락에 따라 인터페이스를 최적화하는 것입니다. 예를 들어, 일기를 쓰거나 문서를 작성할 때 코딩용 UI(번호 표시, 기호 등)는 방해가 될 수 있습니다.
+--
+-- Lua
+--
+-- local function au(group, event, pattern, callback)
+--     vim.api.nvim_create_autocmd(event, {
+--         group = vim.api.nvim_create_augroup(group, { clear = true }),
+--         pattern = pattern,
+--         callback = callback,
+--     })
+-- end
+--
+-- -- [패턴 1: 문서 작업 최적화]
+-- au("MyWorkflowUI", "FileType", { "markdown", "text", "journal" }, function()
+--     vim.opt_local.wrap = true          -- 줄바꿈 허용
+--     vim.opt_local.spell = true         -- 맞춤법 검사 활성화
+--     vim.opt_local.relativenumber = false -- 상대 줄번호 끄기 (가독성)
+--     -- 특정 플러그인(예: ZenMode) 자동 실행 설정 가능
+-- end)
+--
+-- 2. Auto-Save & Sync (데이터 무결성)
+--
+-- 워크플로우 관리에서 '저장'을 잊어 메모를 날리는 것은 치명적입니다. 포커스를 잃거나 특정 시간 동안 입력이 없을 때 자동으로 저장하고 동기화하는 패턴입니다.
+--
+-- Lua
+--
+-- -- [패턴 2: 자동 저장 및 백업]
+-- local sync_group = vim.api.nvim_create_augroup("MyWorkflowSync", { clear = true })
+--
+-- vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
+--     group = sync_group,
+--     pattern = { "*.md", "*.txt", "todo.txt" },
+--     command = "silent! wall", -- 모든 변경사항 조용히 저장
+-- })
+--
+-- -- 메모 파일 저장 시 자동으로 Git push나 스크립트 실행
+-- vim.api.nvim_create_autocmd("BufWritePost", {
+--     group = sync_group,
+--     pattern = { "*/notes/*.md" },
+--     callback = function()
+--         -- 예: 외부 동기화 스크립트 실행
+--         -- vim.fn.jobstart({"sh", "-c", "~/scripts/sync_notes.sh"})
+--     end,
+-- })
+--
+-- 3. Dynamic Project Management (프로젝트 전환)
+--
+-- 특정 폴더(예: ~/projects/work vs ~/personal/vault)에 진입할 때마다 Neovim의 동작을 다르게 설정할 수 있습니다.
+--
+-- Lua
+--
+-- -- [패턴 3: 경로 기반 환경 설정]
+-- au("MyProjectEnv", "BufEnter", "*/personal/vault/*.md", function()
+--     -- 개인 메모장 진입 시 일기 템플릿 로드 혹은 단축키 변경
+--     vim.keymap.set("n", "<leader>nn", ":ObsidianNew<CR>", { buffer = true })
+--     print("Welcome to your Vault!")
+-- end)
+--
+-- 4. Housekeeping (클린 워크플로우)
+--
+-- 작업 효율을 위해 불필요한 데이터를 정리하거나, 마지막 작업 위치를 기억하는 자동화입니다.
+--
+-- 그룹명  :  주요 역할
+-- LastPos  :  파일을 다시 열었을 때 마지막 커서 위치로 이동
+-- FastExit  :  특정 파일 타입(도움말, QF 등)에서 q 키로 바로 닫기"
+-- Highlight  :  텍스트 복사 시(Yank) 시각적 피드백 제공
+-- --
+-- --
+-- -- Lua
+--
+-- -- [패턴 4: 유틸리티 그룹]
+-- local utils = vim.api.nvim_create_augroup("MyWorkflowUtils", { clear = true })
+--
+-- -- 복사(Yank) 시 하이라이트 (시각적 확인)
+-- vim.api.nvim_create_autocmd("TextYankPost", {
+--     group = utils,
+--     callback = function() vim.highlight.on_yank({ higroup = "Visual", timeout = 200 }) end,
+-- })
+-- ==> 이미 kickstart에서 autocmd()로 등록되어 있음
+-- ==> 잔지 augroup()의 naming만 다름.
+--
+-- -- 마지막 커서 위치 기억
+-- vim.api.nvim_create_autocmd("BufReadPost", {
+--     group = utils,
+--     callback = function()
+--         local mark = vim.api.nvim_buf_get_mark(0, '"')
+--         if mark[1] > 1 and mark[1] <= vim.api.nvim_buf_line_count(0) then
+--             vim.api.nvim_win_set_cursor(0, mark)
+--         end
+--     end,
+-- })
+--
+-- 추천하는 구조적 팁
+--
+-- 1. lua/config/autocmds.lua 파일에 모든 그룹을 몰아넣지 마세요.
+--
+-- 2. 기능별 분리: 메모 관련 autocmd는 메모 플러그인 설정 옆에, UI 관련은 UI 설정 옆에 두는 것이 유지보수에 유리합니다.
+--
+-- 3. clear = true 필수: 그룹을 생성할 때 항상 clear = true를 사용하여 설정 파일이 리로드될 때 동일한 명령이 수천 번 겹쳐 실행되는 것을 막으세요.
+--
+-- 이 패턴들 중에서 특히 어떤 부분을 자동화하고 싶으신가요? 구체적인 워크플로우(예: Obsidian 연동, GTD 관리 등)를 알려주시면 그에 맞는 커스텀 스크립트를 짜드릴 수 있습니다.
+--
+-- }}}
+-- --------------------------------------------
+
+
+
+
+
+-- vim: set foldmethod=marker foldmarker={{{,}}}:

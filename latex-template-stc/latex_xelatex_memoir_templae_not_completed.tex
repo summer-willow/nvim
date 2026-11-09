@@ -1,0 +1,107 @@
+% !TEX program = xelatex
+
+\documentclass[12pt, a4paper, oneside]{memoir}
+
+% -- ---------------------------------------
+% 0. 불필요한 로그 경고 완벽 차단 설정 (에러 유발 명령어 교정)
+\usepackage{silence}
+\WarningFilter{microtype}{Unknown slot number}
+\WarningFilter{microtype}{Command \pickup@font} % microtype 패치 경고 완벽 차단
+\WarningFilter{latex}{Font shape}              % 폰트 대체 경고 차단
+
+% -- ---------------------------------------
+
+
+
+
+% -- ---------------------------------------
+
+
+
+
+
+% -- ---------------------------------------
+
+
+
+
+% 1. XeLaTeX 폰트 및 한글 설정
+\usepackage{fontspec}          % XeLaTeX 핵심 폰트 패키지 (Undefined 에러 해결)
+\usepackage[hangul]{kotex}     % 한글 지원
+
+% [영문 폰트 설정] Latin Modern 적용
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+
+% -- ---------------------------------------
+% [한글 폰트 설정] kotex 표준 명령어로 맑은 고딕 지정
+% \setmainhangulfont{Malgun Gothic}[BoldFont=* Bold]
+% \setsanshangulfont{Malgun Gothic}[BoldFont=* Bold]
+
+% [한글 폰트 설정] 기울임 요청 시 가짜로 누워있는 글자를 만들도록 옵션 추가
+\setmainhangulfont{Malgun Gothic}[
+    BoldFont=* Bold,
+    ItalicFont=*,          % 이탤릭체 요청 시에도 기본 맑은 고딕 파일을 쓰되,
+    ItalicFeatures={AutoFakeSlant=0.17} % 0.17만큼 인위적으로 기울여서 출력함
+]
+% ==> 한글에 대해서는 아무 효과가 없다. 결론적으로, 이 설정은 효과가 없으므로,  없어도 된다.
+\setsanshangulfont{Malgun Gothic}[
+    BoldFont=* Bold,
+    ItalicFont=*,
+    ItalicFeatures={AutoFakeSlant=0.17}
+]
+% ==> 한글에 대해서는 아무 효과가 없다. 결론적으로, 이 설정은 효과가 없으므로,  없어도 된다.
+% -- ---------------------------------------
+
+
+
+% 2. 수식 및 수학 기호 패키지
+\usepackage{amsmath}           
+\usepackage{amssymb}           
+\usepackage{amsfonts}          
+\usepackage{bm}                
+
+
+% 3. 여백 및 조판 미세 조정
+\usepackage[margin=1in]{geometry} 
+\usepackage{microtype}         
+
+% 4. 하이퍼링크 설정
+\usepackage{hyperref}          
+
+% 문서 정보 설정
+\title{XeLaTeX 및 memoir 기반 한글/수식 보고서}
+\author{작성자 이름}
+\date{\today}
+
+\begin{document}
+
+% 표지 생성
+\maketitle
+
+% 목차 생성
+\tableofcontents
+\newpage
+
+\chapter{서론}
+\section{연구 배경}
+정의되지 않은 명령어 오류들을 모두 해결한 버전입니다. \texttt{fontspec} 패키지를 명시적으로 먼저 불러옴으로써 \texttt{\textbackslash setmainfont} 계열의 명령어들이 정상 작동합니다. 
+
+한글은 맑은 고딕을 바탕으로 조판되므로 \textit{이탤릭체}(\verb|\textit{이탤릭체}|)나 \textbf{굵은 글씨} 경고가 사라집니다. 영문 역시 에러 없이 \textit{Latin Modern Roman} 서체로 깔끔하게 출력됩니다.
+
+찰 문단에서 보이듯 한글에 대해서 기울임체는, ex) \verb|\textit{한글이탤릭체}|,  제대로 적용되지 않는다.
+그러므로 한글은 타이포그래피 구조상 이탤릭체를 잘 쓰지 않기 때문에 강조하고 싶은 단어가 있다면 \textbf{한글}(굵은 글씨)을 써야 한다.
+
+\section{수식 작성 예시}
+인라인 수식은 $E = mc^2$와 같이 표현하며, 독립된 블록 수식은 다음과 같이 작성합니다.
+\begin{equation}
+    f(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{(x-\mu)^2}{2\sigma^2} \right)
+\end{equation}
+
+ggg
+11111111111111111
+22222222222222
+3333333333333333
+
+\end{document}
